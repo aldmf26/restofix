@@ -31,7 +31,6 @@
                                         <div class="col-lg-6">
                                             <input type="date" id="tglAbsen" name="tgl" value="<?= $tgl ?>"
                                                 class="form-control">
-
                                         </div>
                                         <div class="col-lg-2">
                                             <button type="submit" class="btn btn-info btn-sm">View</button>

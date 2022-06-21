@@ -101,7 +101,16 @@
                         </div>
                         <div class="card">
                             <div class="card-header">
-                                <h5>Database Voucher</h5>
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <h5>Database Voucher</h5>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <a class="btn btn-secondary btn-md float-right" href="{{ route('exportVoucher', ['id_lokasi' => Session::get('id_lokasi')]) }}" target="_blank"><i class="fa fa-file-excel"></i> Export</a>
+                                    </div>
+                                </div>
+                                
+                                
                             </div>
                             <div class="card-body">
                                 <table class="table  " id="table">
@@ -173,7 +182,7 @@
                                                         class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
                                                 </td>
                                                 <?php }else { ?>
-                                                <td class="text-warning">Terpakai</td>
+                                                <td class="text-warning">Terpakai ({{ $v->updated_at }})</td>
                                                 <td></td>
                                                 <?php } ?>
 

@@ -7,6 +7,9 @@ use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class DiscountController extends Controller
 {
@@ -15,6 +18,8 @@ class DiscountController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    
     public function index(Request $request)
     {
         $id_user = Auth::user()->id;
@@ -160,5 +165,62 @@ class DiscountController extends Controller
         } else {
             echo 'kosong';
         }
+    }
+
+    public function exportVoucher(Request $r)
+    {
+        $id_lokasi = $r->id_lokasi;
+        $voucher = Voucher::where('lokasi', $id_lokasi)->orderBy('id_voucher', 'desc')->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->getStyle('A1:D4')
+            ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+        // lebar kolom
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(13);
+        $sheet->getColumnDimension('F')->setWidth(13);
+
+        $sheet
+            ->setCellValue('A1', 'Kode')
+            ->setCellValue('B1', 'Jumlah')
+            ->setCellValue('C1', 'Keterangan')
+            ->setCellValue('D1', 'Expired')
+            ->setCellValue('E1', 'STATUS');
+        
+            $kolom = 2;
+            foreach ($voucher as $k) {
+                $sheet
+                    ->setCellValue('A'.$kolom,$k->kode)
+                    ->setCellValue('B'.$kolom,$k->jumlah)
+                    ->setCellValue('C'.$kolom,$k->ket)
+                    ->setCellValue('D'.$kolom,$k->expired)
+                    ->setCellValue('E'.$kolom,$k->terpakai);
+                $kolom++;
+            }
+            $writer = new Xlsx($spreadsheet);
+            $style = [
+                'borders' => [
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                    ],
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+                    ],
+                ],
+            ];
+            $batas = count($voucher) + 1;
+            $sheet->getStyle('A1:E'.$batas)->applyFromArray($style);
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="Data Voucher.xlsx"');
+            header('Cache-Control: max-age=0');
+
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer->save('php://output');
     }
 }

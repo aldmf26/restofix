@@ -172,6 +172,8 @@ Route::get('/deleteVoucher', [DiscountController::class, 'deleteVoucher'])->name
 Route::get('/in_voucher', [DiscountController::class, 'in_voucher'])->name('in_voucher')->middleware('auth');
 Route::get('/un_voucher', [DiscountController::class, 'un_voucher'])->name('un_voucher')->middleware('auth');
 Route::get('/voucher_pembayaran', [DiscountController::class, 'voucher_pembayaran'])->name('voucher_pembayaran')->middleware('auth');
+Route::get('/exportVoucher', [DiscountController::class, 'exportVoucher'])->name('exportVoucher')->middleware('auth');
+
 
 Route::get('/distribusi', [DistribusiController::class, 'index'])->name('distribusi')->middleware('auth');
 Route::post('/addDistribusi', [DistribusiController::class, 'addDistribusi'])->name('addDistribusi')->middleware('auth');

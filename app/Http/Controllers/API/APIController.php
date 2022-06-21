@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Denda;
+use App\Models\Kasbon;
 use App\Models\Order2;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -51,5 +52,26 @@ class APIController extends Controller
         }
         dd($data1);
         Http::post('https://resto-laravel.putrirembulan.com/api/tb_order3', $data1);
+    }
+
+    public function tb_kasbon()
+    {
+        $tb_kasbon = Kasbon::where('import', 'T')->get();
+
+
+        $data = [];
+        $id_kasbon = [];
+        foreach ($tb_kasbon as $t) {
+            $id_kasbon[] = $t->id_kasbon;
+            array_push($data, [
+                'tgl' => $t->tgl,
+                'nm_karyawan' => $t->nm_karyawan,
+                'admin' =>  $t->admin,
+                'nominal' =>  $t->nominal,
+            ]);
+        }
+        $response =  Http::post('https://ptagafood.com/api/tb_kasbon', $data);
+        Kasbon::whereIn('id_kasbon', $id_kasbon)->update(['import' => 'Y']);
+        return redirect()->route('sukses')->with('sukses', 'Sukses');
     }
 }
