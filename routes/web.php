@@ -41,6 +41,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VoidController;
 use App\Http\Controllers\WaktuTungguController;
 use App\Http\Controllers\WelcomeController;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -54,9 +55,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/voucher_hapus', [OrderController::class, 'index'])->name('voucher_hapus');
+Route::get('/point_kerja', [OrderController::class, 'index'])->name('point_kerja');
+Route::get('/henKategori', [OrderController::class, 'index'])->name('henKategori');
+
 Route::get('/order', [OrderController::class, 'index'])->name('order');
 Route::get('/tb_order3', [APIController::class, 'tb_order3'])->name('tb_order3');
 

@@ -282,7 +282,7 @@ class AccountingController extends Controller
     {
         $id_user = Auth::user()->id;
         $id_menu = DB::table('tb_permission')->select('id_menu')->where('id_user', $id_user)
-            ->where('id_menu', 33)->first();
+            ->where('id_menu', 32)->first();
         if (empty($id_menu)) {
             return back();
         } else {
@@ -1121,7 +1121,7 @@ class AccountingController extends Controller
     {
         $id_user = Auth::user()->id;
         $id_menu = DB::table('tb_permission')->select('id_menu')->where('id_user', $id_user)
-            ->where('id_menu', 33)->first();
+            ->where('id_menu', 32)->first();
         if (empty($id_menu)) {
             return back();
         } else {
@@ -1150,8 +1150,8 @@ class AccountingController extends Controller
                     'title' => 'Buku Besar',
                     'logout' => $request->session()->get('logout'),
                     'buku' => $buku,
-                    'dari' => $dari,
-                    'sampai' => $sampai,
+                    'tgl1' => $dari,
+                    'tgl2' => $sampai,
                     'tahun' => $tahun
                 ];
                 return view('accounting.bukuBesar', $data);
@@ -1323,5 +1323,4 @@ class AccountingController extends Controller
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save('php://output');
     }
-
 }
