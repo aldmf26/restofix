@@ -85,6 +85,8 @@ Route::post('/karyawanImport', [AdministratorController::class, 'karyawanImport'
 
 // Akunting
 Route::get('/accounting', [AccountingController::class, 'index'])->name('accounting')->middleware('auth');
+Route::post('/addKategoriAkun', [AccountingController::class, 'addKategoriAkun'])->name('addKategoriAkun')->middleware('auth');
+Route::get('/delKetAkun', [AccountingController::class, 'delKetAkun'])->name('delKetAkun')->middleware('auth');
 Route::post('/addPostCenter', [AccountingController::class, 'addPostCenter'])->name('addPostCenter')->middleware('auth');
 Route::get('/get_data_post_center', [AccountingController::class, 'get_data_post_center'])->name('get_data_post_center')->middleware('auth');
 Route::get('/dashboard', [AccountingController::class, 'dashboard'])->name('dashboard')->middleware('auth');
@@ -95,6 +97,31 @@ Route::get('/deleteAkun', [AccountingController::class, 'deleteAkun'])->name('de
 Route::post('/importAkun', [AccountingController::class, 'importAkun'])->name('importAkun')->middleware('auth');
 Route::get('/exportAkun', [AccountingController::class, 'exportAkun'])->name('exportAkun')->middleware('auth');
 Route::get('/lapBulanan', [AccountingController::class, 'lapBulanan'])->name('lapBulanan')->middleware('auth');
+Route::post('/relasiAkun', [AccountingController::class, 'relasiAkun'])->name('relasiAkun')->middleware('auth');
+
+// akunting 2
+Route::get('/jPenutup', [AccountingController::class, 'jPenutup'])->name('jPenutup')->middleware('auth');
+Route::get('/printJPenutup', [AccountingController::class, 'printJPenutup'])->name('printJPenutup')->middleware('auth');
+Route::get('/excelJPenutup', [AccountingController::class, 'excelJPenutup'])->name('excelJPenutup')->middleware('auth');
+Route::post('/importJPenutup', [AccountingController::class, 'importJPenutup'])->name('importJPenutup')->middleware('auth');
+Route::post('/addJPenutup', [AccountingController::class, 'addJPenutup'])->name('addJPenutup')->middleware('auth');
+Route::get('/get_akun_penutup', [AccountingController::class, 'get_akun_penutup'])->name('get_akun_penutup')->middleware('auth');
+
+// laba rugi
+Route::get('/labaRugi', [AccountingController::class, 'labaRugi'])->name('labaRugi')->middleware('auth');
+Route::get('/printLabaRugi', [AccountingController::class, 'printLabaRugi'])->name('printLabaRugi')->middleware('auth');
+Route::get('/excelLabaRugi', [AccountingController::class, 'excelLabaRugi'])->name('excelLabaRugi')->middleware('auth');
+
+Route::get('/jPenyesuaian1', [AccountingController::class, 'jPenyesuaian1'])->name('jPenyesuaian1')->middleware('auth');
+Route::get('/get_relation_akun', [AccountingController::class, 'get_relation_akun'])->name('get_relation_akun')->middleware('auth');
+Route::get('/get_relation_peralatan', [AccountingController::class, 'get_relation_peralatan'])->name('get_relation_peralatan')->middleware('auth');
+Route::get('/get_relation_atk', [AccountingController::class, 'get_relation_atk'])->name('get_relation_atk')->middleware('auth');
+Route::post('/add_penyesuaian_atk', [AccountingController::class, 'add_penyesuaian_atk'])->name('add_penyesuaian_atk')->middleware('auth');
+Route::post('/add_penyesuaian_peralatan', [AccountingController::class, 'add_penyesuaian_peralatan'])->name('add_penyesuaian_peralatan')->middleware('auth');
+Route::post('/add_penyesuaian_akun', [AccountingController::class, 'add_penyesuaian_akun'])->name('add_penyesuaian_akun')->middleware('auth');
+Route::get('/get_relation_aktiva', [AccountingController::class, 'get_relation_aktiva'])->name('get_relation_aktiva')->middleware('auth');
+Route::post('/add_penyesuaian_aktiva', [AccountingController::class, 'add_penyesuaian_aktiva'])->name('add_penyesuaian_aktiva')->middleware('auth');
+Route::get('/jPenyesuaian2', [AccountingController::class, 'jPenyesuaian2'])->name('jPenyesuaian2')->middleware('auth');
 
 Route::get('/jPemasukan', [AccountingController::class, 'jPemasukan'])->name('jPemasukan')->middleware('auth');
 Route::get('/delJpem', [AccountingController::class, 'delJpem'])->name('delJpem')->middleware('auth');
@@ -116,6 +143,11 @@ Route::get('/bukuBesar', [AccountingController::class, 'bukuBesar'])->name('buku
 Route::get('/detailBukuBesar', [AccountingController::class, 'detailBukuBesar'])->name('detailBukuBesar')->middleware('auth');
 Route::get('/printBukuBesar', [AccountingController::class, 'printBukuBesar'])->name('printBukuBesar')->middleware('auth');
 Route::get('/exportBukuBesar', [AccountingController::class, 'exportBukuBesar'])->name('exportBukuBesar')->middleware('auth');
+
+// more
+Route::get('/kelPeralatan', [AccountingController::class, 'kelPeralatan'])->name('kelPeralatan')->middleware('auth');
+Route::post('/editKelPeralatan', [AccountingController::class, 'editKelPeralatan'])->name('editKelPeralatan')->middleware('auth');
+
 
 // export
 Route::get('/exportJPengeluaran', [AccountingController::class, 'exportJPengeluaran'])->name('exportJPengeluaran')->middleware('auth');
@@ -272,6 +304,7 @@ Route::get('/drop', [dataOrderanController::class, 'drop'])->name('drop');
 Route::get('/orderan_void', [dataOrderanController::class, 'orderan_void'])->name('orderan_void');
 
 Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice');
+Route::post('/hapus_invoice', [InvoiceController::class, 'hapus_invoice'])->name('hapus_invoice');
 Route::get('/invoice1', [InvoiceController::class, 'invoice1'])->name('invoice1');
 
 Route::get('/void', [VoidController::class, 'index'])->name('void');
@@ -357,3 +390,10 @@ Route::get('/distribusi3', [HeadController::class, 'distribusi'])->name('distrib
 Route::get('/tb_denda', [RestoController::class, 'tb_denda'])->name('tb_denda');
 Route::get('/tb_tips', [RestoController::class, 'tb_tips'])->name('tb_tips');
 Route::get('/tb_kasbon', [RestoController::class, 'tb_kasbon'])->name('tb_kasbon');
+
+Route::get('/tb_jurnal', [APIController::class, 'tb_jurnal'])->name('tb_jurnal');
+
+
+Route::get('/point_kitchen', [APIController::class, 'tb_jurnal'])->name('point_kitchen');
+Route::get('/kom_serve', [APIController::class, 'tb_jurnal'])->name('kom_serve');
+Route::get('/setOrang', [APIController::class, 'tb_jurnal'])->name('setOrang');

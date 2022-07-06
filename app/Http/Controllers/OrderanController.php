@@ -138,7 +138,7 @@ class OrderanController extends Controller
         $qty = $request->qty;
         $harga = $request->harga;
         $id_meja = $request->id_meja;
-
+        $kode_dp = $request->kode_dp;
         $id_distribusi = $request->id_distribusi;
         $lokasi = $request->session()->get('id_lokasi');
 
@@ -258,10 +258,10 @@ class OrderanController extends Controller
         $k_mandiri = $request->k_mandiri;
         $byrTotal = $cash + $d_bca + $k_bca + $d_mandiri + $k_mandiri;
         $kembalian = $byrTotal - $ttl;
+        $dp = $request->dp;
         $tagal = date('Y-m-d');
         $month = date('m', strtotime($tagal));
         $year = date('Y', strtotime($tagal));
-
 
         $debca = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Bank BCA']])->first();
         $krbca = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Piutang BCA']])->first();
@@ -273,7 +273,30 @@ class OrderanController extends Controller
         $ho = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Hutang Ongkir']])->first();
         $hs = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Hutang Service Charge 7%']])->first();
         $pd = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Pb1 Pajak Daerah 10%']])->first();
+        $pdd = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Pendapatan dibayar dimuka']])->first();
         // dd($krbca);
+        if($dp > 0) {
+            $kode_akun = Jurnal::where('id_akun', $pdd->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+
+            if ($kode_akun == 0) {
+                $kode_akun = 1;
+            } else {
+                $kode_akun += 1;
+            }
+            $dbca = [
+                'id_buku' => 1,
+                'id_lokasi' => $lokasi,
+                'id_akun' => $pdd->id_akun,
+                'kd_gabungan' => $hasil,
+                'no_nota' => $pdd->kd_akun . date('Y-m') . '-' . $kode_akun,
+                'debit' => $dp,
+                'kredit' => 0,
+                'tgl' => date('Y-m-d'),
+                'ket' => 'Dp '.$kode_dp,
+                'admin' => Auth::user()->nama,
+            ];
+            Jurnal::create($dbca);
+        }
         if($d_bca) {
             $kode_akun = Jurnal::where('id_akun', $debca->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
 
@@ -286,7 +309,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $debca->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $debca->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => $d_bca <= $ttl ? $d_bca : $d_bca - $kembalian,
                 'kredit' => 0,
@@ -308,7 +331,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' =>$krbca->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' =>$krbca->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => $k_bca<= $ttl ? $k_bca: $k_bca- $kembalian,
                 'kredit' => 0,
@@ -330,7 +353,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $dmandiri->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $dmandiri->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => $d_mandiri <= $ttl ? $d_mandiri : $d_mandiri - $kembalian,
                 'kredit' => 0,
@@ -352,7 +375,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $kamndiri->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $kamndiri->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => $k_mandiri <= $ttl ? $k_mandiri : $k_mandiri - $kembalian,
                 'kredit' => 0,
@@ -374,7 +397,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' =>$kas->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' =>$kas->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => $cash - $kembalian,
                 'kredit' => 0,
@@ -390,7 +413,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $pjl->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $pjl->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => 0,
                 'kredit' => $sub,
@@ -404,7 +427,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $pll->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $pll->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => 0,
                 'kredit' => $request->round,
@@ -414,25 +437,28 @@ class OrderanController extends Controller
             ];
             Jurnal::create($pdpll);
 
-            $hutong = [
-                'id_buku' => 1,
-                'id_lokasi' => $lokasi,
-                'id_akun' => $ho->id_akun,
-                'kd_gabungan' => $request->no_order,
-                'no_nota' => $ho->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => 0,
-                'kredit' => $okir,
-                'tgl' => date('Y-m-d'),
-                'ket' => 'penjualan',
-                'admin' => Auth::user()->nama,
-            ];
-            Jurnal::create($hutong);
+            if($okir != 0) {
+                $hutong = [
+                    'id_buku' => 1,
+                    'id_lokasi' => $lokasi,
+                    'id_akun' => $ho->id_akun,
+                    'kd_gabungan' => $hasil,
+                    'no_nota' => $ho->kd_akun . date('Y-m') . '-' . $kode_akun,
+                    'debit' => 0,
+                    'kredit' => $okir,
+                    'tgl' => date('Y-m-d'),
+                    'ket' => 'penjualan',
+                    'admin' => Auth::user()->nama,
+                ];
+                Jurnal::create($hutong);
+            }
+            
 
             $hsc = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $hs->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $hs->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => 0,
                 'kredit' => $service,
@@ -446,7 +472,7 @@ class OrderanController extends Controller
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $pd->id_akun,
-                'kd_gabungan' => $request->no_order,
+                'kd_gabungan' => $hasil,
                 'no_nota' => $pd->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => 0,
                 'kredit' => $tax,

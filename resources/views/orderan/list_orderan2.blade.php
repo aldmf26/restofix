@@ -159,6 +159,7 @@
                 <input type="hidden" name="id_dp" id="id_dp">
                 <input type="hidden" name="round" class="round" value="<?= $round ?>">
                 <input type="hidden" id="jumlah_dp">
+                <input type="hidden" name="kode_dp" id="kode_dp">
             </td>
             <td></td>
         </tr>

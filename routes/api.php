@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Denda;
+use App\Models\Jurnal;
 use App\Models\Order2;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -20,6 +21,33 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+Route::post('tb_jurnal', function (r $b) {
+    foreach ($b->all() as $t) {
+        $data = [
+            'id_buku' => $t['id_buku'],
+                'id_akun' =>  $t['id_akun'],
+                'kd_gabungan' =>  $t['kd_gabungan'],
+                'no_nota' =>  $t['no_nota'],
+                'id_lokasi' =>  $t['id_lokasi'],
+                'admin' => $t['admin'],
+                'jenis' => $t['jenis'],
+                'debit' => $t['debit'],
+                'kredit' => $t['kredit'],
+                'qty' => $t['qty'],
+                'id_satuan' => $t['id_satuan'],
+                'ttl_rp' => $t['ttl_rp'],
+                'tgl' => $t['tgl'],
+                'ket' => $t['ket'],
+                'admin' => $t['admin'],
+                'status' => $t['status'],
+                'created_at' => $t['created_at'],
+                'updated_at' => $t['updated_at'],
+        ];
+        Jurnal::create($data);
+    }
+
+});
+
 Route::get('komisi', function (Request $r) {
     $jenis = $r->jenis == '' ? 'takemori' : $r->jenis;
     $komisi = Http::get("http://127.0.0.1:8000/api/komisi/$jenis/2022-06-01/2022-06-30");

@@ -72,6 +72,46 @@
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-file-invoice"></i>
+                        <p>
+                            Accounting Akhir Bulan
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview" style="display: none;">
+                        <li class="nav-item">
+                            <a href="{{ route('jPenyesuaian1', ['acc' => $id_lokasi]) }}"
+                                class="nav-link {{Request::is('jPenyesuaian1') ? 'active' : ''}}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Jurnal Penyesuaian 1</p>
+                            </a>
+                        </li>                    
+                        <li class="nav-item">
+                            <a href="{{ route('jPenyesuaian2', ['acc' => $id_lokasi]) }}"
+                                class="nav-link {{Request::is('jPenyesuaian2') ? 'active' : ''}}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Jurnal Penyesuaian 2</p>
+                            </a>
+                        </li>                    
+                        <li class="nav-item">
+                            <a href="{{ route('labaRugi', ['acc' => $id_lokasi]) }}"
+                                class="nav-link {{Request::is('labaRugi') ? 'active' : ''}}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Laporan Laba / Rugi</p>
+                            </a>
+                        </li>                    
+                        <li class="nav-item">
+                            <a href="{{ route('jPenutup', ['acc' => $id_lokasi]) }}"
+                                class="nav-link {{Request::is('jPenutup') ? 'active' : ''}}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Jurnal Penutup</p>
+                            </a>
+                        </li>                    
+                                       
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-home"></i>
                         <p>
                             Homepage
@@ -100,6 +140,25 @@
                                 <p>Profit & Loss</p>
                             </a>
                         </li>                    
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-caret-square-down"></i>
+                        <p>
+                            More
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview" style="display: none;">
+                        <li class="nav-item">
+                            <a href="{{ route('kelPeralatan', ['acc' => $id_lokasi]) }}"
+                                class="nav-link {{Request::is('kelPeralatan') ? 'active' : ''}}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Kelompok Peralatan</p>
+                            </a>
+                        </li>                    
+                                     
                     </ul>
                 </li>
             </ul>

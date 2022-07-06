@@ -34,15 +34,24 @@
             <td colspan="50" class="bg-info"></td>
         </tr>
         <?php $menu = DB::select(
-            "SELECT b.nm_menu, c.nm_meja, a.* FROM tb_order AS a LEFT JOIN view_menu AS b ON b.id_harga = a.id_harga
-                                                                LEFT JOIN tb_meja AS c ON c.id_meja = a.id_meja where a.id_lokasi = '$lokasi' and a.id_meja = '$m->id_meja' and a.selesai = 'dimasak' and aktif = '1' and void = 0",
+            "SELECT b.nm_menu, c.nm_meja, a.*,e.ttlMenu,f.ttlMenuSemua FROM tb_order AS a LEFT JOIN view_menu AS b ON b.id_harga = a.id_harga
+                    LEFT JOIN (SELECT d.id_harga, COUNT(id_harga) as ttlMenu FROM `tb_order` as d where d.id_lokasi = '$lokasi' and d.id_meja = '$m->id_meja' and d.selesai = 'dimasak' and aktif = '1' and void = 0 GROUP BY d.id_harga) as e on b.id_harga = e.id_harga
+                    LEFT JOIN (SELECT d.id_harga, COUNT(id_harga) as ttlMenuSemua FROM `tb_order` as d where d.id_lokasi = '$lokasi' and d.selesai = 'dimasak' and aktif = '1' and void = 0 GROUP BY d.id_harga) as f on b.id_harga = f.id_harga
+                    LEFT JOIN tb_meja AS c ON c.id_meja = a.id_meja where a.id_lokasi = '$lokasi' and a.id_meja = '$m->id_meja' and a.selesai = 'dimasak' and aktif = '1' and void = 0 ORDER BY a.id_order",
         ); ?>
         <?php $menu2 = DB::select(
-            "SELECT b.nm_menu, c.nm_meja, a.* FROM tb_order AS a 
-                                                                LEFT JOIN view_menu AS b ON b.id_harga = a.id_harga
-                                                                LEFT JOIN tb_meja AS c ON c.id_meja = a.id_meja where a.id_lokasi = '$lokasi' and a.id_meja = '$m->id_meja' and a.selesai != 'dimasak' and aktif = '1' and void = 0",
-        ); ?>
-
+            "SELECT b.nm_menu, c.nm_meja, a.*,e.ttlMenu,f.ttlMenuSemua FROM tb_order AS a 
+                    LEFT JOIN view_menu AS b ON b.id_harga = a.id_harga
+                    LEFT JOIN (SELECT d.id_harga, COUNT(id_harga) as ttlMenu FROM `tb_order` as d where d.id_lokasi = '$lokasi' and d.id_meja = '$m->id_meja' and d.selesai != 'dimasak' and aktif = '1' and void = 0 GROUP BY d.id_harga) as e on b.id_harga = e.id_harga
+                    LEFT JOIN (SELECT d.id_harga, COUNT(id_harga) as ttlMenuSemua FROM `tb_order` as d where d.id_lokasi = '$lokasi' and d.selesai != 'dimasak' and aktif = '1' and void = 0 GROUP BY d.id_harga) as f on b.id_harga = f.id_harga
+                    LEFT JOIN tb_meja AS c ON c.id_meja = a.id_meja where a.id_lokasi = '$lokasi' and a.id_meja = '$m->id_meja' and a.selesai != 'dimasak' and aktif = '1' and void = 0 ORDER BY a.id_order",
+        );
+        $no = 1;
+        ?>
+        @php
+            $setMenit = DB::table('tb_menit')->where('id_lokasi', $lokasi)->first();
+  
+        @endphp
         <?php foreach ($menu2 as $m) : ?>
         <tr>
             <td></td>
@@ -57,8 +66,13 @@
             <td></td>
             <?php endif; ?>
             <?php endforeach ?>
-            <?php if (date('H:i', strtotime($m->j_selesai)) < date('H:i', strtotime($m->j_mulai . '+40 minutes'))) : ?>
-            <td><b style="color:blue;"><?= date('H:i', strtotime($m->j_selesai)) ?></b></td>
+            @php
+                $totalKerja = new DateTime($m->j_mulai);
+                $today = new DateTime($m->j_selesai);
+                $menit = $today->diff($totalKerja);
+            @endphp
+            <?php if (date('H:i', strtotime($m->j_selesai)) < date('H:i', strtotime($m->j_mulai . '+'.$setMenit->menit.' minutes'))) : ?>
+            <td><b style="color:blue;"><?= date('H:i', strtotime($m->j_selesai)) ?> <?= date('H:i', strtotime($m->j_mulai)) ?> / {{ $menit->i }} Menit / {{ $menit->s }} detik</b></td>
             <?php else : ?>
             <td><b style="color:red;"><?= date('H:i', strtotime($m->j_selesai)) ?></b></td>
             <?php endif ?>
@@ -110,12 +124,10 @@
             <?php endforeach ?>
             <td style="font-weight: bold;"><?= date('H:i', strtotime($m->j_mulai)) ?></td>
             <?php else : ?>
-            <td style="text-decoration: line-through; "><a href="<?= base_url("orderan/order/$m->no_order") ?>"
-                    style="color:black;">SELESAI</a></td>
             <?php foreach ($tb_koki as $k) : ?>
             <td></td>
             <?php endforeach ?>
-            <?php if (date('H:i', strtotime($m->j_selesai)) < date('H:i', strtotime($m->j_mulai . '+40 minutes'))) : ?>
+            <?php if (date('H:i', strtotime($m->j_selesai)) < date('H:i', strtotime($m->j_mulai . '+'.$setMenit->menit.' minutes'))) : ?>
             <td><b style="color:blue;"><?= date('H:i', strtotime($m->j_selesai)) ?></b></td>
             <?php else : ?>
             <td><b style="color:red;"><?= date('H:i', strtotime($m->j_selesai)) ?></b></td>

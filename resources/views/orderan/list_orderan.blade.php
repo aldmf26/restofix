@@ -383,6 +383,7 @@
                         dataType: "json",
                         success: function(data) {
                             $("#jumlah_dp").val(data.jumlah);
+                            $("#kode_dp").val(data.kd_dp);
                             $("#id_dp").val(data.id_dp);
                             var total_bayar = val1 - rupiah + parseFloat(gosen) - parseInt($(
                                 "#jumlah_dp").val());

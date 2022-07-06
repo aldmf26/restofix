@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Denda;
+use App\Models\Jurnal;
 use App\Models\Kasbon;
 use App\Models\Order2;
 use Illuminate\Http\Request;
@@ -73,5 +74,34 @@ class APIController extends Controller
         $response =  Http::post('https://ptagafood.com/api/tb_kasbon', $data);
         Kasbon::whereIn('id_kasbon', $id_kasbon)->update(['import' => 'Y']);
         return redirect()->route('sukses')->with('sukses', 'Sukses');
+    }
+
+    public function tb_jurnal(Request $r)
+    {
+        $data = Jurnal::where('import', 'T')->get();
+
+
+        $data1 = [];
+        $id_jurnal = [];
+        foreach ($data as $t) {
+            $id_jurnal[] = $t->id_jurnal;
+            array_push($data1, [
+                'id_buku' => $t->id_buku,
+                'id_akun' =>  $t->id_akun,
+                'kd_gabungan' =>  $t->kd_gabungan,
+                'no_nota' =>  $t->no_nota,
+                'id_lokasi' =>  $t->id_lokasi,
+                'admin' => $t->admin,
+                'debit' => $t->debit,
+                'kredit' => $t->kredit,
+                'tgl' => $t->tgl,
+                'ket' => $t->ket,
+                'status' => $t->status,
+                'created_at' => $t->created_at,
+                'updated_at' => $t->updated_at,
+            ]);
+        }
+        $response = Http::post('https://ptagafood.com/api/tb_jurnal', $data1);
+        Jurnal::whereIn('id_jurnal', $id_jurnal)->update(['import' => 'Y']);
     }
 }

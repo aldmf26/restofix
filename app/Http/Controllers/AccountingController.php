@@ -13,6 +13,7 @@ use App\Models\PostCenter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Illuminate\Support\Str;
@@ -32,6 +33,7 @@ class AccountingController extends Controller
 
     public function dashboard(Request $request)
     {
+        $request->session()->put('id_lokasi', $request->acc);
         $data = [
             'title' => 'Accounting Takemori',
             'logout' => $request->session()->get('logout'),
@@ -53,7 +55,12 @@ class AccountingController extends Controller
                     'title' => 'Akun',
                     'logout' => $request->session()->get('logout'),
                     'akun' => Akun::join('tb_kategori_akun', 'tb_kategori_akun.id_kategori', '=', 'tb_akun.id_kategori')->where('id_lokasi', $request->acc)->orderBy('no_akun', 'asc')->get(),
-
+                    'menu_akun' => DB::table('tb_menu_akun')->get(),
+                    'kategori' => DB::table('tb_kategori_akun')->get(),
+                    'akun_relation' => DB::select("SELECT tb_akun.id_akun as id_akun, nm_akun, relasi.id_relation_debit, relasi.id_relation_kredit 
+                    FROM tb_akun
+                    LEFT JOIN (SELECT id_akun, id_relation_debit, id_relation_kredit FROM tb_relasi_akun) relasi ON tb_akun.id_akun = relasi.id_akun
+                    ")
                 ];
 
                 return view('accounting.accounting', $data);
@@ -61,6 +68,93 @@ class AccountingController extends Controller
                 return back();
             }
         }
+    }
+
+    public function addKategoriAkun(Request $r)
+    {
+        $id_lokasi = $r->id_lokasi;
+        DB::table('tb_kategori_akun')->insert(['nm_kategori' => $r->nm_kategori]);
+        return redirect()->route('akun', ['acc' => $id_lokasi])->with('sukses', 'Berhasil tambah kategori akun');
+    }
+
+
+    public function delKetAkun(Request $r)
+    {
+        $id_lokasi = $r->id_lokasi;
+        DB::table('tb_kategori_akun')->where('id_kategori', $r->id_kategori)->delete();
+        return redirect()->route('akun', ['acc' => $id_lokasi])->with('sukses', 'Berhasil tambah post center');
+    }
+
+    public function relasiAkun(Request $r)
+    {
+        $id_lokasi = $r->id_lokasi;
+        $id_akun = $r->kd_akun;
+        $id_sub_menu_akun = $r->id_sub_menu_akun;
+
+        DB::table('tb_permission_akun')->where('id_akun', $id_akun)->delete();
+        for ($x = 0; $x < sizeof($id_sub_menu_akun); $x++) {
+            $data_permission = [
+                'id_akun' => $id_akun,
+                'id_sub_menu_akun' => $id_sub_menu_akun[$x]
+            ];
+            DB::table('tb_permission_akun')->insert($data_permission);
+        }
+        return redirect()->route('akun', ['acc' => $id_lokasi])->with('sukses', 'Berhasil tambah post center');
+    }
+
+    public function jPenyesuaian1(Request $r)
+    {
+        if (empty($r->tgl1)) {
+            $month = date('m');
+            $year = date('Y');
+            $last_date = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+            $tgl1 = $year . '-' . $month . '-01';
+            $tgl2 = $year . '-' . $month . '-' . $last_date;
+        } else {
+            $tgl1 = $r->tgl1;
+            $tgl2 = $r->tgl2;
+        }
+
+        $data = [
+            'title' => 'Jurnal Penyesuaian 1',
+            'tgl1' => $tgl1,
+            'tgl2' => $tgl2,
+        ];
+        return view('accounting.akunting2.jPenyesuaian1', $data);
+    }
+
+    public function get_relation_akun(Request $r)
+    {
+        return "<h1>relasi akun</h1>";
+    }
+
+    public function add_penyesuaian_akun(Request $r)
+    {
+        # code...
+    }
+
+    public function get_relation_atk(Request $r)
+    {
+        return "<h1>r4elasi atk</h1>";
+    }
+
+    public function get_relation_aktiva(Request $r)
+    {
+        return "<h1>tes</h1>";
+    }
+
+    public function add_penyesuaian_aktiva(Request $r)
+    {
+        # code...
+    }
+    public function get_relation_peralatan(Request $r)
+    {
+        return "<h1>peralatan</h1>";
+    }
+
+    public function add_penyesuaian_peralatan(Request $r)
+    {
+        # code...
     }
 
     public function addPostCenter(Request $request)
@@ -77,6 +171,8 @@ class AccountingController extends Controller
         PostCenter::create($data);
         return redirect()->route('akun', ['acc' => $id_lokasi])->with('sukses', 'Berhasil tambah post center');
     }
+
+
 
     public function get_data_post_center(Request $request)
     {
@@ -1033,7 +1129,7 @@ class AccountingController extends Controller
         );
 
         $batas = $kolom - 1;
-        $spreadsheet->getActiveSheet()->getStyle('A1:K' . $batas+1)->applyFromArray($style);
+        $spreadsheet->getActiveSheet()->getStyle('A1:K' . $batas + 1)->applyFromArray($style);
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="Data export jurnal all.xlsx"');
@@ -1056,7 +1152,7 @@ class AccountingController extends Controller
     {
         $id_user = Auth::user()->id;
         $id_menu = DB::table('tb_permission')->select('id_menu')->where('id_user', $id_user)
-            ->where('id_menu', 33)->first();
+            ->where('id_menu', 31)->first();
         if (empty($id_menu)) {
             return back();
         } else {
@@ -1086,13 +1182,12 @@ class AccountingController extends Controller
         $debit_saldo = $request->debit_saldo;
         $kredit_saldo = $request->kredit_saldo;
 
-        for ($i=0; $i < count($id_akun); $i++) { 
+        for ($i = 0; $i < count($id_akun); $i++) {
             $neracaSaldo = DB::table('tb_neraca_saldo')->where('id_akun', $id_akun[$i])->first();
             // dd($neracaSaldo);
-            if($tgl == "") {
-
+            if ($tgl == "") {
             } else {
-                if(empty($neracaSaldo)) {
+                if (empty($neracaSaldo)) {
                     $data = [
                         'tgl' => $tgl,
                         'id_lokasi' => $id_lokasi,
@@ -1109,10 +1204,9 @@ class AccountingController extends Controller
                         'debit_saldo' => $debit_saldo[$i],
                         'kredit_saldo' => $kredit_saldo[$i],
                     ];
-                    DB::table('tb_neraca_saldo')->where([['id_akun', $id_akun[$i]],['id_lokasi', $id_lokasi]])->update($data);
+                    DB::table('tb_neraca_saldo')->where([['id_akun', $id_akun[$i]], ['id_lokasi', $id_lokasi]])->update($data);
                 }
             }
-
         }
         return redirect()->route('neracaSaldo', ['acc' => $id_lokasi])->with('sukses', 'Data berhasil Ditambah');
     }
@@ -1184,14 +1278,14 @@ class AccountingController extends Controller
         $data = [
             'title' => 'Detail Buku Besar',
             'buku' => $buku,
-            'akun' => DB::table('tb_akun')->where('id_akun',$id_akun)->first(),
+            'akun' => DB::table('tb_akun')->where('id_akun', $id_akun)->first(),
             'tgl1' => $dari,
             'tgl2' => $sampai,
             'id_akun' => $id_akun,
             'neraca' => $neracaSaldo
         ];
 
-        return view('accounting.detailBukuBesar',$data);
+        return view('accounting.detailBukuBesar', $data);
     }
 
     public function printBukuBesar(Request $request)
@@ -1204,7 +1298,7 @@ class AccountingController extends Controller
             $tgl1 = $request->dari;
             $tgl2 = $request->sampai;
         }
-        
+
         $buku = DB::select("SELECT tb_akun.id_akun, tb_akun.no_akun, tb_akun.nm_akun, jurnal.debit, jurnal.kredit, neraca_saldo.debit_saldo, neraca_saldo.kredit_saldo
                     FROM tb_akun
                      LEFT JOIN (SELECT tb_jurnal.id_akun, SUM(tb_jurnal.debit) as debit, SUM(tb_jurnal.kredit) as kredit FROM tb_jurnal JOIN tb_akun ON tb_jurnal.id_akun = tb_akun.id_akun AND tb_jurnal.tgl between '$tgl1' AND '$tgl2' AND tb_jurnal.id_lokasi = '$request->acc' AND tb_jurnal.id_buku != 6 GROUP BY tb_jurnal.id_akun) jurnal ON tb_akun.id_akun = jurnal.id_akun
@@ -1238,7 +1332,7 @@ class AccountingController extends Controller
             $tgl1 = $request->dari;
             $tgl2 = $request->sampai;
         }
-        
+
         $buku = DB::select("SELECT tb_akun.id_akun, tb_akun.no_akun, tb_akun.nm_akun, jurnal.debit, jurnal.kredit, neraca_saldo.debit_saldo, neraca_saldo.kredit_saldo
                     FROM tb_akun
                      LEFT JOIN (SELECT tb_jurnal.id_akun, SUM(tb_jurnal.debit) as debit, SUM(tb_jurnal.kredit) as kredit FROM tb_jurnal JOIN tb_akun ON tb_jurnal.id_akun = tb_akun.id_akun AND tb_jurnal.tgl between '$tgl1' AND '$tgl2' AND tb_jurnal.id_lokasi = '$request->acc' AND tb_jurnal.id_buku != 6 GROUP BY tb_jurnal.id_akun) jurnal ON tb_akun.id_akun = jurnal.id_akun
@@ -1250,7 +1344,7 @@ class AccountingController extends Controller
                      ORDER BY tb_akun.no_akun ASC");
         $tahun = DB::select("SELECT tgl FROM tb_jurnal GROUP BY YEAR('tgl')");
         $bulan = DB::select("SELECT tgl FROM tb_jurnal GROUP BY MONTH('tgl')");
-        
+
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->setActiveSheetIndex(0);
         $sheet->setTitle('Jurnal Pengeluaran');
@@ -1280,7 +1374,600 @@ class AccountingController extends Controller
             $kredit = $b->kredit + $b->kredit_saldo;
             $total_debit += $debit;
             $total_kredit += $kredit;
-            $total_saldo += $saldo; 
+            $total_saldo += $saldo;
+            if ($debit == 0 and $kredit == 0) {
+                continue;
+            }
+            $spreadsheet->setActiveSheetIndex(0);
+            $sheet->setCellValue('A' . $kolom, $b->no_akun);
+            $sheet->setCellValue('B' . $kolom, $b->nm_akun);
+            $sheet->setCellValue('C' . $kolom, $debit);
+            $sheet->setCellValue('D' . $kolom, $kredit);
+            $sheet->setCellValue('E' . $kolom, $saldo);
+
+            $kolom++;
+        }
+        $sheet->setCellValue('B' . $kolom, 'TOTAL');
+        $sheet->setCellValue('C' . $kolom, $total_debit);
+        $sheet->setCellValue('D' . $kolom, $total_kredit);
+        $sheet->setCellValue('E' . $kolom, $total_saldo);
+
+        $style = array(
+            'font' => array(
+                'size' => 9
+            ),
+            'borders' => array(
+                'allBorders' => array(
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ),
+            ),
+            'alignment' => array(
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ),
+        );
+
+        $batas = $kolom - 1;
+        $spreadsheet->getActiveSheet()->getStyle('A1:E' . $batas)->applyFromArray($style);
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="Data Export Buku Besar.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+    }
+
+    public function kelPeralatan(Request $r)
+    {
+        $data = [
+            'title' => 'Kelompok Peralatan',
+            'query' => DB::table('tb_kelompok_peralatan')->get()
+        ];
+
+        return view('accounting.more.kelompokPeralatan', $data);
+    }
+
+    public function editKelPeralatan(Request $r)
+    {
+        $data = [
+            'nm_kelompok' => $r->nm_kelompok,
+            'umur' => $r->umur,
+            'satuan' => $r->satuan,
+            'barang_kelompok' => $r->barang,
+        ];
+
+        DB::table('tb_kelompok_peralatan')->where('id_kelompok', $r->id_kelompok)->update($data);
+
+        return redirect()->route('kelPeralatan', ['acc' => $r->id_lokasi])->with('sukses', 'Berhasil edit kelompok peralatan');
+    }
+
+    public function jPenutup(Request $r)
+    {
+        if (empty($r->tgl1)) {
+            $tgl1 = date('Y-m-01');
+            $tgl2 = date('Y-m-t');
+        } else {
+            $tgl1 = $r->tgl1;
+            $tgl2 = $r->tgl2;
+        }
+        $id_lokasi = Session::get('id_lokasi');
+        $data = [
+            'title' => 'Jurnal Penutup',
+            'jurnal' => DB::select("SELECT a.* ,b.no_akun, b.nm_akun, c.nm_post, d.n, c.id_post
+            FROM tb_jurnal as a 
+            left join tb_akun as b on b.id_akun = a.id_akun 
+            left join tb_post_center AS c ON c.id_post = a.id_post
+            left join tb_satuan AS d ON d.id = a.id_satuan
+            WHERE a.id_buku = '5' and a.tgl between '$tgl1' and '$tgl2' AND a.id_lokasi = '$id_lokasi'  order by  a.tgl DESC , a.id_jurnal DESC"),
+            'tgl1' => $tgl1,
+            'tgl2' => $tgl2,
+        ];
+        return view('accounting.akunting2.jPenutup', $data);
+    }
+
+    public function printJPenutup(Request $r)
+    {
+        if (empty($r->tgl1)) {
+            $tgl1 = date('Y-m-01');
+            $tgl2 = date('Y-m-t');
+        } else {
+            $tgl1 = $r->tgl1;
+            $tgl2 = $r->tgl2;
+        }
+
+        $id_lokasi = Session::get('id_lokasi');
+        $month = date('m', strtotime($tgl1));
+        $year = date('Y', strtotime($tgl1));
+
+
+        $penutup_pendapatan = DB::select("SELECT a.tgl, b.no_akun, b.nm_akun, sum(a.debit) AS debit, sum(a.kredit) AS kredit 
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON b.id_akun = a.id_akun
+        WHERE a.id_buku = '5' AND b.penutup_pendapatan = 'Y' AND a.id_lokasi = '$id_lokasi' AND MONTH(a.tgl) = '$month' AND YEAR(a.tgl) = '$year'
+        GROUP BY a.id_akun");
+
+        $penutup_biaya = DB::select("SELECT a.tgl, b.no_akun, b.nm_akun, sum(a.debit) AS debit, sum(a.kredit) AS kredit 
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON b.id_akun = a.id_akun
+        WHERE a.id_buku = '5' AND b.penutup_biaya = 'Y' AND a.id_lokasi = '$id_lokasi' AND MONTH(a.tgl) = '$month' AND YEAR(a.tgl) = '$year'
+        GROUP BY a.id_akun");
+
+        $modal = DB::selectOne("SELECT b.no_akun, a.tgl, b.nm_akun, sum(a.debit) AS debit, sum(a.kredit) AS kredit 
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON b.id_akun = a.id_akun
+        WHERE a.id_akun = '56' AND a.id_lokasi = '$id_lokasi' AND MONTH(a.tgl) = '$month' AND YEAR(a.tgl) = '$year'
+        GROUP BY a.id_akun");
+
+        $prive = DB::selectOne("SELECT b.no_akun, a.tgl, b.nm_akun, sum(a.debit) AS debit, sum(a.kredit) AS kredit 
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON b.id_akun = a.id_akun
+        WHERE a.id_akun = '57' AND a.id_lokasi = '$id_lokasi' AND MONTH(a.tgl) = '$month' AND YEAR(a.tgl) = '$year'
+        GROUP BY a.id_akun");
+
+        $data = [
+            'title' => 'Laporan Jurnal Penutup',
+            'tgl1' => $tgl1,
+            'tgl2' => $tgl2,
+            'penutup_pendapatan' => $penutup_pendapatan,
+            'penutup_biaya' => $penutup_biaya,
+            'modal' => $modal,
+            'prive' => $prive,
+        ];
+
+        return view('accounting.akunting2.printJPenutup',['acc' => $id_lokasi],$data);
+
+    }
+
+    public function get_akun_penutup(Request $r)
+    {
+
+        $id_lokasi = Session::get('id_lokasi');
+
+        $month = date('m');
+        $year = date('Y');
+        if ($id_lokasi == 1) {
+            $penutup = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+            FROM tb_jurnal AS a
+            LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+            LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+            WHERE c.id_sub_menu_akun = '15' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year' AND a.penutup = 'T' AND a.id_lokasi = '1'
+            GROUP BY b.id_akun");
+
+            $penutup_biaya = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+            FROM tb_jurnal AS a
+            LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+            LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+            WHERE c.id_sub_menu_akun = '16' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year' AND a.penutup = 'T' AND a.id_lokasi = '1'
+            GROUP BY b.id_akun");
+
+            $prev = DB::selectOne("SELECT MAX(a.tgl) AS tgl 
+            FROM tb_jurnal AS a
+            WHERE a.id_akun = '147'");
+
+            $month_modal = date('m', strtotime($prev->tgl));
+            $year_modal = date('Y', strtotime($prev->tgl));
+
+            $modal = DB::selectOne("SELECT a.id_akun, b.nm_akun , SUM(a.kredit) AS kredit, SUM(a.debit) AS debit, last_day(a.tgl), a.tgl
+            FROM tb_jurnal AS a
+            LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+            WHERE a.id_akun = '147' and MONTH(a.tgl) = '$month_modal' and YEAR(a.tgl) = '$year_modal'
+            GROUP BY b.id_akun");
+
+            $neraca = DB::table('tb_neraca_saldo')->join('tb_akun', 'tb_akun.id_akun', 'tb_neraca_saldo.id_akun')->where('tb_neraca_saldo.id_akun', 147)->first();
+        } else {
+            $penutup = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+            FROM tb_jurnal AS a
+            LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+            LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+            WHERE c.id_sub_menu_akun = '15' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year' AND a.penutup = 'T' AND a.id_lokasi = '2'
+            GROUP BY b.id_akun");
+
+            $penutup_biaya = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+            FROM tb_jurnal AS a
+            LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+            LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+            WHERE c.id_sub_menu_akun = '16' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year' AND a.id_lokasi = '2' AND a.penutup = 'T'
+            GROUP BY b.id_akun");
+
+            $prev = DB::selectOne("SELECT MAX(a.tgl) AS tgl 
+            FROM tb_jurnal AS a
+            WHERE a.id_akun = '168'");
+
+            $month_modal = date('m', strtotime($prev->tgl));
+            $year_modal = date('Y', strtotime($prev->tgl));
+
+            $modal = DB::selectOne("SELECT a.id_akun, b.nm_akun , SUM(a.kredit) AS kredit, SUM(a.debit) AS debit, last_day(a.tgl), a.tgl
+            FROM tb_jurnal AS a
+            LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+            WHERE a.id_akun = '168' and MONTH(a.tgl) = '$month_modal' and YEAR(a.tgl) = '$year_modal'
+            GROUP BY b.id_akun");
+
+            $neraca = DB::table('tb_neraca_saldo')->join('tb_akun', 'tb_akun.id_akun', 'tb_neraca_saldo.id_akun')->where('tb_neraca_saldo.id_akun', 168)->first();
+        }
+        $data = [
+            'penutup' => $penutup,
+            'penutup_biaya' => $penutup_biaya,
+            'modal' => $modal,
+            'neraca' => $neraca,
+            'id_lokasi' => $id_lokasi,
+        ];
+        return view('accounting.akunting2.penutupAkun', $data);
+    }
+
+    public function addJPenutup(Request $r)
+    {
+        $id_lokasi = Session::get('id_lokasi');
+        $tgl = $r->tgl;
+        $id_akun = $r->id_akun;
+        $metode = $r->metode;
+        $kredit = $r->kredit;
+        $aktiva = $r->aktiva;
+        $passiva = $r->passiva;
+        $admin = Auth::user()->nama;
+
+        if (empty($tgl)) {
+        } else {
+            for ($x = 0; $x < count($tgl); $x++) {
+                $month = date('m', strtotime($tgl[$x]));
+                $year = date('Y', strtotime($tgl[$x]));
+
+                if ($kredit[$x] == 0 || empty($kredit[$x])) {
+                    # code...
+                } else {
+                    $get_kd_akun = Akun::where('id_akun', $id_akun[$x])->get()[0];
+                    $kode_akun = Jurnal::where('id_akun', $id_akun[$x])->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+                    if ($kode_akun == 0) {
+                        $kode_akun = 1;
+                    } else {
+                        $kode_akun += 1;
+                    }
+                    $get_akun = Akun::where('id_akun', $id_akun[$x])->get()[0];
+                    $get_kd_metode = Akun::where('id_akun', $metode[$x])->get()[0];
+                    $kode_metode = Jurnal::where('id_akun', $metode[$x])->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+                    if ($kode_metode == 0) {
+                        $kode_metode = 1;
+                    } else {
+                        $kode_metode += 1;
+                    }
+                    $get_metode = Akun::where('id_akun', $metode[$x])->get()[0];
+
+                    $kd_gabungan = 'RST' . date($tgl[$x]) . strtoupper(Str::random(3));
+                    $data_metode = [
+                        'id_buku' => 5,
+                        'id_akun' => $metode[$x],
+                        'kd_gabungan' => $kd_gabungan,
+                        'no_nota' => $get_kd_metode->kd_akun . date('my', strtotime($tgl[$x])) . '-' . $kode_metode,
+                        'kredit' => $kredit[$x],
+                        'tgl' => $tgl[$x],
+                        'tgl_input' => date('Y-m-d H:i:s'),
+                        'admin' => $admin,
+                        'id_lokasi' => $id_lokasi,
+                        'ket' => 'Ikhtisar laba rugi'
+                    ];
+
+                    Jurnal::create($data_metode);
+
+                    $data_jurnal = [
+                        'id_buku' => 5,
+                        'id_akun' => $id_akun[$x],
+                        'kd_gabungan' => $kd_gabungan,
+                        'no_nota' => $get_kd_akun->kd_akun . date('my', strtotime($tgl[$x])) . '-' . $kode_akun,
+                        'debit' => $kredit[$x],
+                        'tgl' => $tgl[$x],
+                        'tgl_input' => date('Y-m-d H:i:s'),
+                        'admin' => $admin,
+                        'id_lokasi' => $id_lokasi,
+                        'ket' => 'Ikhtisar laba rugi'
+                    ];
+                    Jurnal::create($data_jurnal);
+                }
+            }
+        }
+
+        $tgl2 = $r->tgl2;
+        $id_akun2 = $r->id_akun2;
+        $metode2 = $r->metode2;
+        $kredit2 = $r->kredit2;
+        $admin2 = Auth::user()->nama;
+        for ($x = 0; $x < count($tgl2); $x++) {
+            $month2 = date('m', strtotime($tgl2[$x]));
+            $year2 = date('Y', strtotime($tgl2[$x]));
+
+            if ($kredit2[$x] == 0 || empty($kredit2[$x])) {
+                # code...
+            } else {
+
+                $get_kd_akun2 = Akun::where('id_akun', $id_akun2[$x])->get()[0];
+                $kode_akun2 = Jurnal::where('id_akun', $id_akun2[$x])->whereMonth('tgl', $month2)->whereYear('tgl', $year2)->count();
+                if ($kode_akun2 == 0) {
+                    $kode_akun2 = 1;
+                } else {
+                    $kode_akun2 += 1;
+                }
+
+                $get_kd_metode2 = Akun::where('id_akun', $metode2[$x])->get()[0];
+                $kode_metode2 = Jurnal::where('id_akun', $metode2[$x])->whereMonth('tgl', $month2)->whereYear('tgl', $year2)->count();
+                if ($kode_metode2 == 0) {
+                    $kode_metode2 = 1;
+                } else {
+                    $kode_metode2 += 1;
+                }
+
+
+                $kd_gabungan2 = 'RST' . date($tgl2[$x]) . strtoupper(Str::random(3));
+
+                $data_metode2 = [
+                    'id_buku' => 5,
+                    'id_akun' => $metode2[$x],
+                    'kd_gabungan' => $kd_gabungan2,
+                    'no_nota' => $get_kd_metode2->kd_akun . date('my', strtotime($tgl2[$x])) . '-' . $kode_metode2,
+                    'kredit' => $kredit2[$x],
+                    'tgl' => $tgl2[$x],
+                    'tgl_input' => date('Y-m-d H:i:s'),
+                    'admin' => $admin2,
+                    'id_lokasi' => $id_lokasi,
+                    'ket' => 'Ikhtisar laba rugi '
+                ];
+                Jurnal::create($data_metode2);
+
+                $data_jurnal2 = [
+                    'id_buku' => 5,
+                    'id_akun' => $id_akun2[$x],
+                    'kd_gabungan' => $kd_gabungan2,
+                    'no_nota' => $get_kd_akun2->kd_akun . date('my', strtotime($tgl2[$x])) . '-' . $kode_akun2,
+                    'debit' => $kredit2[$x],
+                    'tgl' => $tgl2[$x],
+                    'tgl_input' => date('Y-m-d H:i:s'),
+                    'admin' => $admin2,
+                    'id_lokasi' => $id_lokasi,
+                    'ket' => 'Ikhtisar laba rugi'
+                ];
+                Jurnal::create($data_jurnal2);
+            }
+            $akun_pen = $metode2[$x];
+            Jurnal::where('id_akun', $akun_pen)->whereMonth('tgl', $month2)->whereYear('tgl', $year2)->update(['penutup' => 'Y']);
+        }
+
+        $tgl3 = $r->tgl3;
+        $id_akun3 = $r->id_akun3;
+        $metode3 = $r->metode3;
+        $kredit3 = $r->kredit3;
+        $admin3 = Auth::user()->nama;
+
+        $month3 = date('m', strtotime($tgl3));
+        $year3 = date('Y', strtotime($tgl3));
+
+        $get_kd_akun3 = Akun::where('id_akun', $id_akun3)->get()[0];
+        $kode_akun3 = Jurnal::where('id_akun', $id_akun3)->whereMonth('tgl', $month3)->whereYear('tgl', $year3)->count();
+        if ($kode_akun3 == 0) {
+            $kode_akun3 = 1;
+        } else {
+            $kode_akun3 += 1;
+        }
+
+
+        $get_kd_metode3 = Akun::where('id_akun', $metode3)->get()[0];
+        $kode_metode3 = Jurnal::where('id_akun', $metode3)->whereMonth('tgl', $month3)->whereYear('tgl', $year3)->count();
+
+
+        if ($kode_metode3 == 0) {
+            $kode_metode3 = 1;
+        } else {
+            $kode_metode3 += 1;
+        }
+        $kd_gabungan3 = 'RST' . date($tgl3) . strtoupper(Str::random(3));
+
+        $data_metode3 = [
+            'id_buku' => 5,
+            'id_akun' => $metode3,
+            'kd_gabungan' => $kd_gabungan3,
+            'no_nota' => $get_kd_metode3->kd_akun . date('my', strtotime($tgl3)) . '-' . $kode_metode3,
+            'kredit' => $kredit3,
+            'tgl' => $tgl3,
+            'tgl_input' => date('Y-m-d H:i:s'),
+            'admin' => $admin3,
+            'id_lokasi' => $id_lokasi,
+            'ket' => 'Ikhtisar laba rugi'
+        ];
+        Jurnal::create($data_metode3);
+
+        $data_jurnal3 = [
+            'id_buku' => 5,
+            'id_akun' => $id_akun3,
+            'kd_gabungan' => $kd_gabungan3,
+            'no_nota' => $get_kd_akun3->kd_akun . date('my', strtotime($tgl3)) . '-' . $kode_akun3,
+            'debit' => $kredit3,
+            'tgl' => $tgl3,
+            'tgl_input' => date('Y-m-d H:i:s'),
+            'admin' => $admin3,
+            'id_lokasi' => $id_lokasi,
+            'ket' => 'Ikhtisar laba rugi'
+        ];
+        Jurnal::create($data_jurnal3);
+
+        $tgl4 = $r->tgl4;
+        $id_akun4 = $r->id_akun4;
+        $metode4 = $r->metode4;
+        $kredit4 = $r->kredit4;
+        $admin4 = Auth::user()->nama;
+
+        $month4 = date('m', strtotime($tgl4));
+        $year4 = date('Y', strtotime($tgl4));
+
+        $get_kd_akun4 = Akun::where('id_akun', $id_akun4)->get()[0];
+        $kode_akun4 = Jurnal::where('id_akun', $id_akun4)->whereMonth('tgl', $month4)->whereYear('tgl', $year4)->count();
+        if ($kode_akun4 == 0) {
+            $kode_akun4 = 1;
+        } else {
+            $kode_akun4 += 1;
+        }
+
+
+        $get_kd_metode4 = Akun::where('id_akun', $metode4)->get()[0];
+        $kode_metode4 = Jurnal::where('id_akun', $metode4)->whereMonth('tgl', $month4)->whereYear('tgl', $year4)->count();
+
+
+        if ($kode_metode4 == 0) {
+            $kode_metode4 = 1;
+        } else {
+            $kode_metode4 += 1;
+        }
+        $kd_gabungan4 = 'RST' . date($tgl4) . strtoupper(Str::random(3));
+
+        if ($kredit4 == '0' || $kredit4 == '') {
+        } else {
+            $data_metode4 = [
+                'id_buku' => 5,
+                'id_akun' => $metode4,
+                'kd_gabungan' => $kd_gabungan4,
+                'no_nota' => $get_kd_metode4->kd_akun . date('my', strtotime($tgl4)) . '-' . $kode_metode4,
+                'kredit' => $kredit4,
+                'tgl' => $tgl4,
+                'tgl_input' => date('Y-m-d H:i:s'),
+                'admin' => $admin4,
+                'id_lokasi' => $id_lokasi,
+                'ket' => 'Ikhtisar laba rugi'
+            ];
+            Jurnal::create($data_metode4);
+
+            $data_jurnal4 = [
+                'id_buku' => 5,
+                'id_akun' => $id_akun4,
+                'kd_gabungan' => $kd_gabungan4,
+                'no_nota' => $get_kd_akun4->kd_akun . date('my', strtotime($tgl4)) . '-' . $kode_akun4,
+                'debit' => $kredit4,
+                'tgl' => $tgl4,
+                'tgl_input' => date('Y-m-d H:i:s'),
+                'admin' => $admin4,
+                'id_lokasi' => $id_lokasi,
+                'ket' => 'Ikhtisar laba rugi'
+            ];
+            Jurnal::create($data_jurnal4);
+        }
+        return redirect()->route('jPenutup', ['acc' => $id_lokasi])->with('sukses', 'Berhasil Input Penutup');
+    }
+
+    public function labaRugi(Request $r)
+    {
+        if (empty($r->month)) {
+            $month = date('m');
+            $year = date('Y');
+        } else {
+            $month = $r->month;
+            $year = $r->year;
+        }
+
+        $id_lokasi = Session::get('id_lokasi');
+
+        $penutup = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+        LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+        WHERE a.id_buku != '5' AND a.id_lokasi = '$id_lokasi' and c.id_sub_menu_akun = '13' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year'
+        GROUP BY b.id_akun");
+
+        $penutup_biaya = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+        LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+        WHERE a.id_buku != '5' AND a.id_lokasi = '$id_lokasi' and c.id_sub_menu_akun = '14' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year'
+        GROUP BY b.id_akun");
+        $tahun = DB::select("SELECT tgl FROM tb_jurnal WHERE id_lokasi = '$id_lokasi' GROUP BY YEAR(tgl)");
+        $data = [
+            'title' => 'Laba Rugi',
+            'penutup' => $penutup,
+            'penutup_biaya' => $penutup_biaya,
+            'month' => $month,
+            'year' => $year,
+            'tahun' => $tahun,
+            'id_lokasi' => $id_lokasi,
+        ];
+        return view('accounting.akunting2.labaRugi',['acc' => $id_lokasi],$data);
+    }
+
+    public function printLabaRugi(Request $r)
+    {
+        if (empty($r->month)) {
+            $month = date('m');
+            $year = date('Y');
+        } else {
+            $month = $r->month;
+            $year = $r->year;
+        }
+
+        $id_lokasi = $r->acc;
+
+        $penutup = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+        LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+        WHERE a.id_buku != '5' AND a.id_lokasi = '$id_lokasi' and c.id_sub_menu_akun = '13' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year'
+        GROUP BY b.id_akun");
+
+        $penutup_biaya = DB::select("SELECT a.id_akun, b.nm_akun , last_day(a.tgl) as tgl, SUM(a.kredit) AS kredit, SUM(a.debit) AS debit
+        FROM tb_jurnal AS a
+        LEFT JOIN tb_akun AS b ON a.id_akun = b.id_akun
+        LEFT JOIN tb_permission_akun AS c ON c.id_akun = a.id_akun
+        WHERE a.id_buku != '5' AND a.id_lokasi = '$id_lokasi' and c.id_sub_menu_akun = '14' and MONTH(a.tgl) = '$month' and YEAR(a.tgl) = '$year'
+        GROUP BY b.id_akun");
+        $tahun = DB::select("SELECT tgl FROM tb_jurnal WHERE id_lokasi = '$id_lokasi' GROUP BY YEAR(tgl)");
+        $data = [
+            'title' => 'Laba Rugi',
+            'penutup' => $penutup,
+            'penutup_biaya' => $penutup_biaya,
+            'month' => $month,
+            'year' => $year,
+            'tahun' => $tahun,
+            'id_lokasi' => $id_lokasi,
+        ];
+        return view('accounting.akunting2.printLabaRugi',['acc' => $id_lokasi],$data);
+    }
+
+    public function excelLabaRugi(Request $r)
+    {
+        $buku = DB::select("SELECT tb_akun.id_akun, tb_akun.no_akun, tb_akun.nm_akun, jurnal.debit, jurnal.kredit, neraca_saldo.debit_saldo, neraca_saldo.kredit_saldo
+                    FROM tb_akun
+                     LEFT JOIN (SELECT tb_jurnal.id_akun, SUM(tb_jurnal.debit) as debit, SUM(tb_jurnal.kredit) as kredit FROM tb_jurnal JOIN tb_akun ON tb_jurnal.id_akun = tb_akun.id_akun AND tb_jurnal.tgl between '$tgl1' AND '$tgl2' AND tb_jurnal.id_lokasi = '$request->acc' AND tb_jurnal.id_buku != 6 GROUP BY tb_jurnal.id_akun) jurnal ON tb_akun.id_akun = jurnal.id_akun
+                     
+                     LEFT JOIN (SELECT tb_neraca_saldo.id_akun,sum(tb_neraca_saldo.debit_saldo) as debit_saldo, sum(tb_neraca_saldo.kredit_saldo) as kredit_saldo FROM tb_neraca_saldo WHERE tb_neraca_saldo.tgl between '$tgl1' AND  '$tgl2' AND tb_neraca_saldo.id_lokasi = '$request->acc' GROUP BY tb_neraca_saldo.id_akun) neraca_saldo ON tb_akun.id_akun = neraca_saldo.id_akun
+            
+                     
+                    
+                     ORDER BY tb_akun.no_akun ASC");
+        $tahun = DB::select("SELECT tgl FROM tb_jurnal GROUP BY YEAR('tgl')");
+        $bulan = DB::select("SELECT tgl FROM tb_jurnal GROUP BY MONTH('tgl')");
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->setActiveSheetIndex(0);
+        $sheet->setTitle('Jurnal Pengeluaran');
+        $sheet->setCellValue('A1', '#');
+        $sheet->setCellValue('B1', 'Tanggal');
+        $sheet->setCellValue('C1', 'D');
+        $sheet->setCellValue('D1', 'M');
+        $sheet->setCellValue('E1', 'Y');
+        $sheet->setCellValue('F1', 'No Invoice');
+        $sheet->setCellValue('G1', 'Keterangan');
+        $sheet->setCellValue('H1', 'No Akun');
+        $sheet->setCellValue('I1', 'Nama Akun');
+        $sheet->setCellValue('J1', 'Debit');
+        $sheet->setCellValue('K1', 'Kredit');
+
+
+        $kolom = 2;
+        $no = 1;
+        $total_debit = 0;
+        $total_kredit = 0;
+        $total_saldo = 0;
+        $laba_ditahan = 0;
+
+        foreach ($buku as $b) {
+            $saldo = $b->debit + $b->debit_saldo  - $b->kredit - $b->kredit_saldo;
+            $debit = $b->debit + $b->debit_saldo;
+            $kredit = $b->kredit + $b->kredit_saldo;
+            $total_debit += $debit;
+            $total_kredit += $kredit;
+            $total_saldo += $saldo;
             if ($debit == 0 and $kredit == 0) {
                 continue;
             }

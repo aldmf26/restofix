@@ -39,6 +39,9 @@
                                 <a href="" data-toggle="modal" data-target="#tambah"
                                     class="btn btn-info btn-sm float-right mr-1"><i class="fas fa-plus"></i> Tambah
                                     Akun</a>
+                                <a href="" data-toggle="modal" data-target="#kategori"
+                                    class="btn btn-info btn-sm float-right mr-1">Kategori
+                                    Akun</a>
                             </div>
                             <div class="card-body">
                                 <div id="table_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
@@ -66,6 +69,7 @@
                                                             <td>{{ $a->nm_akun }}</td>
                                                             <td>{{ $a->nm_kategori }}</td>
                                                             <td align="center">
+                                                                <a href="#" data-toggle="modal" data-target="#edit<?= $a->id_akun ?>" class="btn btn-info btn-sm"><i class="fas fa-edit"></i></a>
                                                                 <a href="#" data-toggle="modal" data-target="#akses<?= $a->id_akun ?>" class="btn btn-info btn-sm"><i class="fas fa-key"></i> Relasi akun</a>
                                                                 <a href="#" data-target="#add_post_center{{$a->id_akun}}" data-toggle="modal"
                                                                     class="btn btn-secondary btn-sm btnPs" id_lokasi="{{Request::get('acc')}}" id_akun="{{ $a->id_akun }}"><i class="fas fa-map-pin"></i> Post
@@ -96,6 +100,74 @@
         }
 
     </style>
+
+    {{-- relasi akun --}}
+    @foreach ($akun as $a)
+    <form action="<?= route('relasiAkun') ?>" method="post">
+        @csrf
+        <div class="modal fade" id="akses<?= $a->id_akun ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <input type="hidden" name="kd_akun" value="<?= $a->id_akun ?>">
+                <input type="hidden" name="id_lokasi" value="<?= Request::get('acc') ?>">
+                <div class="modal-content">
+                    <div class="modal-header bg-info">
+                        <h5 class="modal-title" id="exampleModalLabel">Relasi akun</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>
+                            <dt>Relasi akun : <?= $a->nm_akun ?> </dt>
+                        </h5>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Menu Akun</th>
+                                    <th>Sub Menu Akun</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($menu_akun as $m) : ?>
+                                    <tr>
+                                        <td><?= $m->nm_menu_akun ?></td>
+                                        <td>
+                                            <?php $sub = DB::table('sub_menu_akun')->where('id_menu_akun', $m->id_menu_akun)->get(); ?>
+                                            <?php foreach ($sub as $s) : ?>
+                                                <?= $s->sub_menu_akun ?> <br>
+                                            <?php endforeach ?>
+                                        </td>
+                                        <td>
+                                            <?php foreach ($sub as $s) : ?>
+                                                <?php $menu_p = DB::selectOne("SELECT a.id_sub_menu_akun
+                                                    FROM tb_permission_akun AS a
+                                                    WHERE a.id_sub_menu_akun = '$s->id_sub_akun' AND a.id_akun = '$a->id_akun'") ?>
+                                                <?php if (empty($menu_p)) : ?>
+                                                    <input type="checkbox" name="id_sub_menu_akun[]" value="<?= $s->id_sub_akun ?>" id=""><br>
+                                                <?php else : ?>
+                                                    <input type="checkbox" name="id_sub_menu_akun[]" value="<?= $s->id_sub_akun ?>" checked><br>
+                                                <?php endif ?>
+                                            <?php endforeach ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save/Edit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    @endforeach
+    {{-- -------------------- --}}
+
     {{-- add post center --}}
     @foreach ($akun as $a)
     <form action="{{ route('addPostCenter') }}" method="post">
@@ -221,6 +293,56 @@
         </div>
     </form>
     {{-- ------------------------ --}}
+
+    {{-- kategori akun --}}
+    <form action="{{ route('addKategoriAkun') }}" method="post" accept-charset="utf-8">
+        @csrf
+        <div class="modal fade" id="kategori" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg-lg" role="document">
+                <div class="modal-content ">
+                    <div class="modal-header btn-costume">
+                        <h5 class="modal-title" id="exampleModalLabel">Kategori Akun</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table" id="katAkun">
+                            <thead>
+                                <tr>
+                                    <td>#</td>
+                                    <td>Kategori Akun</td>
+                                    <td>Aksi</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $katakun = DB::table('tb_kategori_akun')->get();
+                                    $no = 1;
+                                @endphp
+                                <tr>
+                                    <td></td>
+                                    <input type="hidden" name="id_lokasi" value="{{Request::get('acc')}}">
+                                    <td><input autofocus type="text" class="form-control" name="nm_kategori"></td>
+                                    <td><button type="submit" class="btn btn-success">Save</button></td>
+                                </tr>
+                                @foreach ($katakun as $k)
+                                    <tr>
+                                        <td>{{ $no++ }}</td>
+                                        <td>{{ $k->nm_kategori }}</td>
+                                        <td>
+                                            <a href="{{ route('delKetAkun', ['id_kategori' => $k->id_kategori, 'id_lokasi' => Request::get('acc')]) }}" class="btn btn-sm btn-outline-secondary"><i class="fa fa-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    {{-- -------------------------- --}}
 
     {{-- edit akun --}}
     @foreach ($akun as $a)
@@ -362,6 +484,15 @@
 @section('script')
 <script>
     $('#table1').DataTable({
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                });
+    $('#katAkun').DataTable({
                     "paging": true,
                     "lengthChange": true,
                     "searching": true,

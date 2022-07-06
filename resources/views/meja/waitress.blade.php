@@ -136,7 +136,6 @@
                         <?php else : ?>
                         <b style="color:blue;"><?= number_format($m->selisih, 0) ?> Menit</b>
                         <?php endif ?>
-                        /
                         <?php if ($m->wait_2 > '40') : ?>
                         <b style="color:red;"><?= number_format($m->wait_2, 0) ?> Menit</b>
                         <?php else : ?>
@@ -173,7 +172,7 @@
                 <td><a kode="{{ $m->id_order }}" id_distribusi="{{ $id }}" kry="{{ $k->nama }}"
                         class="btn btn-sm btn-success waitress"><i class="fas fa-check"></i></a></td>
                 <?php endif ?>
-                <?php endforeach ?>\
+                <?php endforeach ?>
                 
                 <td style="font-weight: bold;">
                     <?= date('H:i', strtotime($m->j_mulai)) ?>

@@ -335,11 +335,22 @@
                 var k_bca = parseInt($('#k_bca').val());
                 var d_mandiri = parseInt($('#d_mandiri').val());
                 var k_mandiri = parseInt($('#k_mandiri').val());
-
+                var ada = '';
+                if(cash) {
+                    ada = 'cash'
+                } else if(d_bca) {
+                    ada = 'd_bca'
+                } else if(k_bca) {
+                    ada = 'k_bca'
+                } else if(d_mandiri) {
+                    ada = 'd_mandiri'
+                } else if(k_mandiri) {
+                    ada = 'k_mandiri'
+                }
                 var total_bayar = cash + d_bca + k_bca + d_mandiri + k_mandiri;
                 $('#btn_e_pembayaran').hide();
                 $.ajax({
-                    url: `{{ route('edit_pembayaran') }}?no_order=${no_order}&cash=${cash}&d_bca=${d_bca}&k_bca=${k_bca}&d_mandiri=${d_mandiri}&k_mandiri=${k_mandiri}&total_bayar=${total_bayar}`,
+                    url: `{{ route('edit_pembayaran') }}?no_order=${no_order}&cash=${cash}&d_bca=${d_bca}&k_bca=${k_bca}&d_mandiri=${d_mandiri}&k_mandiri=${k_mandiri}&total_bayar=${total_bayar}&jenis=${ada}`,
                     type: 'GET',
                     contentType: false,
                     processData: false,

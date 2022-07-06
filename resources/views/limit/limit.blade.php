@@ -40,10 +40,10 @@
                                         <div class="col-8">
                                             <div class="form-group">
                                                 <label for="">Menu</label>
-                                                <select class="form-control select2bs4" name="id_menu"
+                                                <select class="form-control select" name="id_menu"
                                                     data-placeholder="- PILIH MENU -">
                                                     <?php foreach ($menu as $m) : ?>
-                                                    <option value="<?= $m->id_menu ?>"><?= $m->nm_menu ?></option>
+                                                        <option value="<?= $m->id_menu ?>"><?= $m->nm_menu ?></option>
                                                     <?php endforeach ?>
                                                 </select>
                                             </div>
@@ -68,7 +68,7 @@
                                             <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Menu</th>
-                                            <th>Batas Limit</th>
+                                            <th>Batas Limit</th> 
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Akun;
 use App\Models\Harga;
+use App\Models\Jurnal;
 use App\Models\Karyawan;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -311,17 +313,61 @@ class MejaController extends Controller
     public function edit_pembayaran(Request $request)
     {
         $no_order = $request->no_order;
+        $cash = $request->cash;
+        $d_bca = $request->d_bca;
+        $k_bca = $request->k_bca;
+        $d_mandiri = $request->d_mandiri;
+        $k_mandiri = $request->k_mandiri;
 
+        // $jenis = $request->jenis;
+        // $lokasi = $request->session()->get('id_lokasi');
+        // $debca = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Bank BCA']])->first();
+        // $krbca = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Piutang BCA']])->first();
+        // $dmandiri = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Bank Mandiri']])->first();
+        // $kamndiri = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Piutang Mandiri']])->first();
+        // $kas = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Kas']])->first();
+
+        // if($jenis == 'cash') {
+        //     $id_akun = $kas->id_akun;
+        // } elseif($jenis == 'd_bca') {
+        //     $id_akun = $debca->id_akun;
+        // } elseif($jenis == 'k_bca') {
+        //     $id_akun = $krbca->id_akun;
+        // }elseif($jenis == 'd_mandiri') {
+        //     $id_akun = $dmandiri->id_akun;
+        // }elseif($jenis == 'k_mandiri') {
+        //     $id_akun = $kamndiri->id_akun;
+        // }
+
+        // $cek = Jurnal::where([['kd_gabungan', $no_order], ['id_akun', $id_akun]])->first();
+
+        // $id_akunDiedit = $cek->id_akun;
+        
         $data = [
-            'cash' => $request->cash,
-            'd_bca' => $request->d_bca,
-            'k_bca' => $request->k_bca,
-            'd_mandiri' => $request->d_mandiri,
-            'k_mandiri' => $request->k_mandiri,
-            'total_bayar' => $request->cash + $request->d_bca + $request->k_bca + $request->d_mandiri + $request->k_mandiri,
+            'cash' => $cash,
+            'd_bca' => $d_bca,
+            'k_bca' => $k_bca,
+            'd_mandiri' => $d_mandiri,
+            'k_mandiri' => $k_mandiri,
+            'total_bayar' => $cash + $d_bca + $k_bca + $d_mandiri + $k_mandiri,
         ];
-
         Transaksi::where('no_order', $no_order)->update($data);
+
+        // if($cash > 0) {
+        //     $id_akun2 = $kas->id_akun;
+        // } elseif($d_bca > 0) {
+        //     $id_akun2 = $debca->id_akun;
+        // } elseif($k_bca > 0) {
+        //     $id_akun2 = $krbca->id_akun;
+        // } elseif($d_mandiri > 0) {
+        //     $id_akun2 = $dmandiri->id_akun;
+        // } elseif($k_mandiri > 0) {
+        //     $id_akun2 = $kamndiri->id_akun;
+        // }
+        
+        // Jurnal::where([['kd_gabungan', $no_order], ['id_akun', $id_akunDiedit]])->update(['id_akun' => $id_akun2]);
+        
+        
 
         echo'success';
     }

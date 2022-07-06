@@ -56,13 +56,15 @@
                                                 <th colspan="2" style="font-size: 12px;">BCA<br></th>
                                                 <th colspan="2" style="font-size: 12px;">Mandiri</th>
                                                 <th rowspan="2" style="font-size: 12px;">Admin</th>
+                                                <th rowspan="2" style="font-size: 12px;">Aksi</th>
                                             </tr>
                                             <tr>
                                                 <th style="font-size: 12px;">Debit</th>
                                                 <th style="font-size: 12px;">Kredit</th>
-                                                <th style="font-size: 12px;">BCA<br></th>
-                                                <th style="font-size: 12px;">Mandiri</th>
+                                                <th style="font-size: 12px;">Debit<br></th>
+                                                <th style="font-size: 12px;">Kredit</th>
                                             </tr>
+                                            
                                         </thead>
                                         <tbody>
                                             <?php $i = 1;
@@ -76,7 +78,7 @@
                                                 <td><?= number_format($inv->total_orderan + $inv->tax + $inv->service + $inv->ongkir + $inv->round, 0) ?>
                                                 </td>
                                                 <td><?= number_format($inv->discount, 0) ?></td>
-                                                <td><?= number_format($inv->voucher, 0) ?></td>
+                                                <td><?= $inv->voucher ?></td>
                                                 <td><?= number_format($inv->dp, 0) ?></td>
                                                 <td><?= number_format($inv->gosen, 0) ?></td>
                                                 <td><?= number_format($inv->total_bayar, 0) ?></td>
@@ -86,6 +88,16 @@
                                                 <td><?= number_format($inv->d_mandiri, 0) ?></td>
                                                 <td><?= number_format($inv->k_mandiri, 0) ?></td>
                                                 <td><?= $inv->admin ?></td>
+                                                <td>
+                                                    <?php if(date('Y-m-d') == $inv->tgl_transaksi ): ?>
+                                                    <a href="#" class="btn btn-danger btn-sm btn_hapus"
+                                                        no_order="{{$inv->no_order}}" meja="{{$inv->nm_meja}}"
+                                                        data-toggle="modal" data-target="#hapus_voucher"><i
+                                                            class="fas fa-trash-alt"></i></a>
+                                                    <?php else: ?>
+                                                    <?php endif ?>
+    
+                                                </td>
                                             </tr>
                                             <?php endforeach ?>
 
@@ -153,4 +165,60 @@
             </div>
         </div>
     </form>
+
+    <form action="{{route('hapus_invoice')}}" method="post">
+        @csrf
+        <div class="modal fade" id="hapus_voucher">
+            <div class="modal-dialog ">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger ">
+                        <h4 class="modal-title">Hapus data</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-6">
+                                    <label for="">Inoice</label>
+                                    <input type="text" id="no_order" name="no_invoice" class="form-control" readonly>
+                                    <input type="hidden" id="meja" name="meja" class="form-control" readonly>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="">Masukan voucher</label>
+                                    <input type="text" name="kd_voucher" class="form-control">
+                                </div>
+                                <div class="col-lg-12 mt-2">
+                                    <label for="">Alasan</label>
+                                    <input type="text" class="form-control" name="alasan">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="submit" class="btn btn-info" target="_blank">Lanjutkan</button>
+                        </div>
+    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+@endsection
+@section('script')
+<script>
+    $(document).ready(function() {
+        $(document).on('click', '.btn_hapus', function() {
+            var no_order = $(this).attr("no_order");
+            var meja = $(this).attr("meja");
+
+            $('#no_order').val(no_order);
+            $('#meja').val(meja);
+                
+
+        });
+
+        
+    });
+</script>
 @endsection
