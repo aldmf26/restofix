@@ -1,6 +1,7 @@
 <div>
     <label style="font-weight: bold;">Pendapatan</label>
 </div>
+
 <?php if (empty($penutup)) : ?>
     <div class="row">
         <div class="col-lg-12">
@@ -300,8 +301,16 @@
     <div class="col-sm-3 col-md-3">
         <div class="form-group">
             <label for="list_kategori">Akun</label>
+            @php
+                
+            @endphp
+            @if ($laba > 0)
             <input class="form-control" type="text" value="Modal" disabled>
             <input class="form-control" type="hidden" value="{{ $id_lokasi == '1' ? '147' : '168' }}" name="id_akun4">
+            @else
+            <input class="form-control" type="text" value="Prive" disabled>
+            <input class="form-control" type="hidden" name="metode4" value="{{ $id_lokasi == '1' ? '171' : '172' }}">
+            @endif
         </div>
     </div>
     <div class="col-sm-2 col-md-2">
@@ -313,8 +322,13 @@
     <div class="col-sm-2 col-md-3">
         <div class="form-group">
             <label for="list_kategori">Akun</label>
+            @if ($laba > 0)
             <input class="form-control" type="text" value="Prive" disabled>
             <input class="form-control" type="hidden" name="metode4" value="{{ $id_lokasi == '1' ? '171' : '172' }}">
+            @else
+            <input class="form-control" type="text" value="Modal" disabled>
+            <input class="form-control" type="hidden" value="{{ $id_lokasi == '1' ? '147' : '168' }}" name="id_akun4">
+            @endif
         </div>
     </div>
     <div class="col-sm-2 col-md-2">

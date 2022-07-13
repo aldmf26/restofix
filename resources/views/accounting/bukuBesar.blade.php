@@ -17,8 +17,8 @@
             <div class="container">
                 <div class="row">
                     @php
-                              $dari = Request::get('dari') == '' ? date('Y-m-1') : Request::get('dari');
-                              $sampai = Request::get('sampai') == '' ? date('Y-m-d') : Request::get('sampai');
+                              $dari = $tgl1;
+                              $sampai = $tgl2;
 
                               $tDebit = DB::table('tb_jurnal')->where([['id_lokasi', Request::get('acc')],['id_buku',1]])->whereBetween('tgl', [$dari,$sampai])->sum('debit');
                             $tKredit = DB::table('tb_jurnal')->where([['id_lokasi', Request::get('acc')],['id_buku',1]])->whereBetween('tgl', [$dari,$sampai])->sum('kredit');
@@ -58,6 +58,7 @@
                                         }
                                     @endphp
                                 @endforeach
+
                                 <table class="table table-striped dataTable no-footer" id="table" role="grid"
                                 aria-describedby="table_info">
                                     <thead>

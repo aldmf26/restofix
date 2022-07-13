@@ -198,7 +198,10 @@
     $(document).on('click', '.penutup', function() {
         $("#form_penutup").load("{{route('get_akun_penutup')}}", "data", function (response, status, request) {
             this; // dom element
-            
+            $(".prive").keyup(function (e) { 
+                var v = $('.prive').val()
+                $('.prive').val(v)
+            });
         });
 
         });

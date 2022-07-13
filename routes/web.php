@@ -54,6 +54,9 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('/error', function(){
+    return view('errors.403aldi');
+})->name('error');
 
 Route::get('/voucher_hapus', [OrderController::class, 'index'])->name('voucher_hapus');
 Route::get('/point_kerja', [OrderController::class, 'index'])->name('point_kerja');
@@ -88,6 +91,7 @@ Route::get('/accounting', [AccountingController::class, 'index'])->name('account
 Route::post('/addKategoriAkun', [AccountingController::class, 'addKategoriAkun'])->name('addKategoriAkun')->middleware('auth');
 Route::get('/delKetAkun', [AccountingController::class, 'delKetAkun'])->name('delKetAkun')->middleware('auth');
 Route::post('/addPostCenter', [AccountingController::class, 'addPostCenter'])->name('addPostCenter')->middleware('auth');
+Route::get('/delPostCenter', [AccountingController::class, 'delPostCenter'])->name('delPostCenter')->middleware('auth');
 Route::get('/get_data_post_center', [AccountingController::class, 'get_data_post_center'])->name('get_data_post_center')->middleware('auth');
 Route::get('/dashboard', [AccountingController::class, 'dashboard'])->name('dashboard')->middleware('auth');
 Route::get('/akun', [AccountingController::class, 'akun'])->name('akun')->middleware('auth');
@@ -96,8 +100,20 @@ Route::patch('/editAkun', [AccountingController::class, 'editAkun'])->name('edit
 Route::get('/deleteAkun', [AccountingController::class, 'deleteAkun'])->name('deleteAkun')->middleware('auth');
 Route::post('/importAkun', [AccountingController::class, 'importAkun'])->name('importAkun')->middleware('auth');
 Route::get('/exportAkun', [AccountingController::class, 'exportAkun'])->name('exportAkun')->middleware('auth');
-Route::get('/lapBulanan', [AccountingController::class, 'lapBulanan'])->name('lapBulanan')->middleware('auth');
 Route::post('/relasiAkun', [AccountingController::class, 'relasiAkun'])->name('relasiAkun')->middleware('auth');
+
+// lap bulanan
+Route::get('/lapBulanan', [AccountingController::class, 'lapBulanan'])->name('lapBulanan')->middleware('auth');
+Route::get('/excelLapBulanan', [AccountingController::class, 'excelLapBulanan'])->name('excelLapBulanan')->middleware('auth');
+Route::get('/lapExportAll', [AccountingController::class, 'lapExportAll'])->name('lapExportAll')->middleware('auth');
+Route::get('/getDetailLap', [AccountingController::class, 'getDetailLap'])->name('getDetailLap')->middleware('auth');
+Route::get('/getDetailLap2', [AccountingController::class, 'getDetailLap2'])->name('getDetailLap2')->middleware('auth');
+
+// cash flow
+Route::get('/cashFlow', [AccountingController::class, 'cashFlow'])->name('cashFlow')->middleware('auth');
+
+// profit & loss
+Route::get('/pl', [AccountingController::class, 'pl'])->name('pl')->middleware('auth');
 
 // akunting 2
 Route::get('/jPenutup', [AccountingController::class, 'jPenutup'])->name('jPenutup')->middleware('auth');
@@ -106,11 +122,22 @@ Route::get('/excelJPenutup', [AccountingController::class, 'excelJPenutup'])->na
 Route::post('/importJPenutup', [AccountingController::class, 'importJPenutup'])->name('importJPenutup')->middleware('auth');
 Route::post('/addJPenutup', [AccountingController::class, 'addJPenutup'])->name('addJPenutup')->middleware('auth');
 Route::get('/get_akun_penutup', [AccountingController::class, 'get_akun_penutup'])->name('get_akun_penutup')->middleware('auth');
+Route::get('/getPenutup', [AccountingController::class, 'getPenutup'])->name('getPenutup')->middleware('auth');
 
 // laba rugi
 Route::get('/labaRugi', [AccountingController::class, 'labaRugi'])->name('labaRugi')->middleware('auth');
 Route::get('/printLabaRugi', [AccountingController::class, 'printLabaRugi'])->name('printLabaRugi')->middleware('auth');
 Route::get('/excelLabaRugi', [AccountingController::class, 'excelLabaRugi'])->name('excelLabaRugi')->middleware('auth');
+
+// neraca saldo penutup
+Route::get('/neracaSaldoPenutup', [AccountingController::class, 'neracaSaldoPenutup'])->name('neracaSaldoPenutup')->middleware('auth');
+
+// neraca saldo baru
+Route::get('/neracaSaldoBaru', [AccountingController::class, 'neracaSaldoBaru'])->name('neracaSaldoBaru')->middleware('auth');
+
+// cancel jurnal
+Route::get('/cancelJurnal', [AccountingController::class, 'cancelJurnal'])->name('cancelJurnal')->middleware('auth');
+Route::post('/saveCancel', [AccountingController::class, 'saveCancel'])->name('saveCancel')->middleware('auth');
 
 Route::get('/jPenyesuaian1', [AccountingController::class, 'jPenyesuaian1'])->name('jPenyesuaian1')->middleware('auth');
 Route::get('/get_relation_akun', [AccountingController::class, 'get_relation_akun'])->name('get_relation_akun')->middleware('auth');
@@ -148,6 +175,19 @@ Route::get('/exportBukuBesar', [AccountingController::class, 'exportBukuBesar'])
 Route::get('/kelPeralatan', [AccountingController::class, 'kelPeralatan'])->name('kelPeralatan')->middleware('auth');
 Route::post('/editKelPeralatan', [AccountingController::class, 'editKelPeralatan'])->name('editKelPeralatan')->middleware('auth');
 
+// menu
+Route::get('/accMenu', [AccountingController::class, 'accMenu'])->name('accMenu')->middleware('auth');
+Route::post('/saveAccMenu', [AccountingController::class, 'saveAccMenu'])->name('saveAccMenu')->middleware('auth');
+Route::post('/saveMenuUrutan', [AccountingController::class, 'saveMenuUrutan'])->name('saveMenuUrutan')->middleware('auth');
+Route::post('/saveAccSubMenu', [AccountingController::class, 'saveAccSubMenu'])->name('saveAccSubMenu')->middleware('auth');
+Route::post('/editAccMenu', [AccountingController::class, 'editAccMenu'])->name('editAccMenu')->middleware('auth');
+Route::post('/editSubMenu', [AccountingController::class, 'editSubMenu'])->name('editSubMenu')->middleware('auth');
+Route::get('/deleteAccMenu', [AccountingController::class, 'deleteAccMenu'])->name('deleteAccMenu')->middleware('auth');
+Route::get('/deleteAccSubMenu', [AccountingController::class, 'deleteAccSubMenu'])->name('deleteAccSubMenu')->middleware('auth');
+
+// user acc
+Route::get('/accUser', [AccountingController::class, 'accUser'])->name('accUser')->middleware(['auth']);
+Route::post('/accPermission', [AccountingController::class, 'accPermission'])->name('accPermission')->middleware('auth');
 
 // export
 Route::get('/exportJPengeluaran', [AccountingController::class, 'exportJPengeluaran'])->name('exportJPengeluaran')->middleware('auth');

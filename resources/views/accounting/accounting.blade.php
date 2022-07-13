@@ -213,7 +213,9 @@
                                         <tr>
                                             <td>{{$no++}}</td>
                                             <td>{{ $p->nm_post }}</td>
-                                            <td></td>
+                                            <td>
+                                                <a href="{{ route('delPostCenter', ['id_pc' => $p->id_post,'id_lokasi' => Request::get('acc')]) }}" onclick="return confirm('Apakah ingin dihapus ?')" class="btn btn-sm btn-outline-secondary"><i class="fa fa-trash"></i></a>
+                                            </td>
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -491,6 +493,7 @@
                     "info": true,
                     "autoWidth": false,
                     "responsive": true,
+                    "stateSave": true,
                 });
     $('#katAkun').DataTable({
                     "paging": true,

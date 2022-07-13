@@ -275,28 +275,28 @@ class OrderanController extends Controller
         $pd = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Pb1 Pajak Daerah 10%']])->first();
         $pdd = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Pendapatan dibayar dimuka']])->first();
         // dd($krbca);
-        if($dp > 0) {
-            $kode_akun = Jurnal::where('id_akun', $pdd->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+        // if($dp > 0) {
+        //     $kode_akun = Jurnal::where('id_akun', $pdd->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
 
-            if ($kode_akun == 0) {
-                $kode_akun = 1;
-            } else {
-                $kode_akun += 1;
-            }
-            $dbca = [
-                'id_buku' => 1,
-                'id_lokasi' => $lokasi,
-                'id_akun' => $pdd->id_akun,
-                'kd_gabungan' => $hasil,
-                'no_nota' => $pdd->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $dp,
-                'kredit' => 0,
-                'tgl' => date('Y-m-d'),
-                'ket' => 'Dp '.$kode_dp,
-                'admin' => Auth::user()->nama,
-            ];
-            Jurnal::create($dbca);
-        }
+        //     if ($kode_akun == 0) {
+        //         $kode_akun = 1;
+        //     } else {
+        //         $kode_akun += 1;
+        //     }
+        //     $dbca = [
+        //         'id_buku' => 1,
+        //         'id_lokasi' => $lokasi,
+        //         'id_akun' => $pdd->id_akun,
+        //         'kd_gabungan' => $hasil,
+        //         'no_nota' => $pdd->kd_akun . date('Y-m') . '-' . $kode_akun,
+        //         'debit' => $dp,
+        //         'kredit' => 0,
+        //         'tgl' => date('Y-m-d'),
+        //         'ket' => 'Dp '.$kode_dp,
+        //         'admin' => Auth::user()->nama,
+        //     ];
+        //     Jurnal::create($dbca);
+        // }
         if($d_bca) {
             $kode_akun = Jurnal::where('id_akun', $debca->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
 
@@ -305,13 +305,18 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
+            if($dp > 0) {
+                $d_bca = $d_bca <= $ttl ? $d_bca + $dp : $d_bca - $kembalian + $dp;
+            } else {
+                $d_bca = $d_bca <= $ttl ? $d_bca : $d_bca - $kembalian;
+            }
             $dbca = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $debca->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' => $debca->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $d_bca <= $ttl ? $d_bca : $d_bca - $kembalian,
+                'debit' => $d_bca,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -327,13 +332,18 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
+            if($dp > 0) {
+                $k_bca = $k_bca <= $ttl ? $k_bca + $dp : $k_bca - $kembalian + $dp;
+            } else {
+                $k_bca = $k_bca <= $ttl ? $k_bca : $k_bca - $kembalian;
+            }
             $kbca = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' =>$krbca->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' =>$krbca->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $k_bca<= $ttl ? $k_bca: $k_bca- $kembalian,
+                'debit' => $k_bca,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -349,13 +359,18 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
+            if($dp > 0) {
+                $d_mandiri = $d_mandiri <= $ttl ? $d_mandiri + $dp : $d_mandiri - $kembalian + $dp;
+            } else {
+                $d_mandiri = $d_mandiri <= $ttl ? $d_mandiri : $d_mandiri - $kembalian;
+            }
             $dman = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $dmandiri->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' => $dmandiri->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $d_mandiri <= $ttl ? $d_mandiri : $d_mandiri - $kembalian,
+                'debit' => $d_mandiri,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -371,13 +386,18 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
+            if($dp > 0) {
+                $k_mandiri = $k_mandiri <= $ttl ? $k_mandiri + $dp : $k_mandiri - $kembalian + $dp;
+            } else {
+                $k_mandiri = $k_mandiri <= $ttl ? $k_mandiri : $k_mandiri - $kembalian;
+            }
             $kman = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $kamndiri->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' => $kamndiri->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $k_mandiri <= $ttl ? $k_mandiri : $k_mandiri - $kembalian,
+                'debit' => $k_mandiri,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -393,13 +413,18 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
+            if($dp > 0) {
+                $cash = $dp + $cash - $kembalian;
+            } else {
+                $cash = $cash - $kembalian;
+            }
             $csh = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' =>$kas->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' =>$kas->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $cash - $kembalian,
+                'debit' => $cash,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -482,8 +507,6 @@ class OrderanController extends Controller
             ];
             Jurnal::create($ppd);
         }
-        
-        
 
         return redirect()->route('pembayaran2', ['no' => $hasil]);
     }

@@ -51,12 +51,13 @@
                                                     @foreach ($dp as $d)
                                                         @php
                                                             if ($d->status == 1) {
-                                                                $status = 'Aktif';
-                                                            } else {
                                                                 $status = 'Terpakai';
+                                                            } else {
+                                                                $status = 'Aktif';
                                                             }
                                                         @endphp
                                                         <tr>
+                                                            <td style="display:none">{{ $no++ }}</td>
                                                             <td>{{ $d->kd_dp }}</td>
                                                             <td style="white-space: nowrap;">Rp.
                                                                 {{ number_format($d->jumlah, 0) }}</td>

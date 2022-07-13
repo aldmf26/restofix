@@ -21,7 +21,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <form action="{{ route('addNeracaSaldo') }}">
-                                    <h3 class="float-left">Neraca Saldo</h3>
+                                    <h3 class="float-left">Saldo Awal</h3>
                                     <button type="submit" class="btn btn-info float-right">Save Neraca Saldo</button>
                           
                             </div>

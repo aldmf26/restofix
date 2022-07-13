@@ -222,6 +222,9 @@
                       </div>
                     </div>
                   </div>
+                  <div class="col-lg-12">
+                    <h2 class="text-danger" id="testing"></h2>
+                  </div>
                   <hr>
                   <div class="modal-body detail" id="biayaUtama">
                     <div class="row">
@@ -856,5 +859,41 @@
           })
           
       });
+
+      $(document).on('change', '#tgl_peng', function() {
+        var tgl_pen = $(this).val();
+      const d = new Date(tgl_pen);
+      let month = d.getMonth();
+      let year = d.getFullYear();
+
+      var bulan = month + 1
+      var tahun = year
+      //   alert(bulan);
+
+      $.ajax({
+        url: "<?= route('getPenutup'); ?>?bulan="+bulan+"&tahun="+tahun,
+        type: "GET",
+        // dataType: "json",
+        success: function(data) {
+          $('#testing').text(data);
+          if (data != '') {
+            $('#id_pilih').attr('disabled', 'true');
+            $('#metode').attr('disabled', 'true');
+            $('.pen').hide();
+          } else {
+            $('#id_pilih').removeAttr('disabled', 'true');;
+            $('#metode').removeAttr('disabled', 'true');;
+            $('.pen').show();
+          }
+        }
+
+      });
+
+
+
+
+
+    });
+
     </script>
 @endsection
