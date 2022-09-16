@@ -7,6 +7,7 @@
             <th>Kode Menu</th>
             <th>Nama Menu</th>
             <th>Tipe</th>
+            <th>Station</th>
             <th>Distribusi</th>
             <th></th>
             <th>On/Off</th>
@@ -32,6 +33,7 @@
                 <td>{{ $m->kd_menu }}</td>
                 <td>{{ ucwords(Str::lower($m->nm_menu)) }}</td>
                 <td>{{ $m->tipe }}</td>
+                <td>{{ $m->nm_station }}</td>
                 <td style="white-space: nowrap;">
                     @foreach ($harga as $h)
                         {{ $h->nm_distribusi }} <br>

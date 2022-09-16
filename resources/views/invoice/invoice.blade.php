@@ -89,7 +89,7 @@
                                                 <td><?= number_format($inv->k_mandiri, 0) ?></td>
                                                 <td><?= $inv->admin ?></td>
                                                 <td>
-                                                    <?php if(date('Y-m-d') == $inv->tgl_transaksi ): ?>
+                                                    <?php if(date('Y-m-d')): ?>
                                                     <a href="#" class="btn btn-danger btn-sm btn_hapus"
                                                         no_order="{{$inv->no_order}}" meja="{{$inv->nm_meja}}"
                                                         data-toggle="modal" data-target="#hapus_voucher"><i

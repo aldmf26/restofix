@@ -100,7 +100,7 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $menu = DB::table('tb_acc_menu')->get();
+                                        $menu = DB::table('tb_acc_menu')->orderBy('urutan', 'ASC')->get();
                                     @endphp
                                     <?php foreach ($menu as $m) : ?>
 

@@ -729,30 +729,53 @@
                     contentType: false,
                     processData: false,
                     success: function(data) {
-                        $('#tbh_menu').hide();
-                        setTimeout(function() {
-                            $("[data-dismiss=modal]").trigger({
-                                type: "click"
+                        if(data == 'stok kurang') {
+                            $('#tbh_menu').hide();
+                            setTimeout(function() {
+                                $("[data-dismiss=modal]").trigger({
+                                    type: "click"
+                                });
+                            }, 50);
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                icon: 'error',
+                                title: 'Menu tidak cukup stok'
                             });
-                        }, 50);
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            icon: 'success',
-                            title: 'Pesanan berhasil ditambahkan'
-                        });
-                        load_tugas();
 
-                        $('#tambah_pesanan').trigger("reset");
-                        $('.id_harga').val('');
-                        $('.id_harga').trigger('change');
-                        $('.row_tambah_menu').remove();
+                            $('#tambah_pesanan').trigger("reset");
+                            $('.id_harga').val('');
+                            $('.id_harga').trigger('change');
+                            $('.row_tambah_menu').remove();
 
-                        $('#btn_tambah_pesanan').show();
+                            $('#btn_tambah_pesanan').show();
+                            
+                        } else {
+                            $('#tbh_menu').hide();
+                            setTimeout(function() {
+                                $("[data-dismiss=modal]").trigger({
+                                    type: "click"
+                                });
+                            }, 50);
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                icon: 'success',
+                                title: 'Pesanan berhasil ditambahkan'
+                            });
+                            load_tugas();
 
+                            $('#tambah_pesanan').trigger("reset");
+                            $('.id_harga').val('');
+                            $('.id_harga').trigger('change');
+                            $('.row_tambah_menu').remove();
 
+                            $('#btn_tambah_pesanan').show();
+                        }
                     }
                 });
 

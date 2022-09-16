@@ -47,13 +47,13 @@
                                 <tbody>
                                     <?php $total_pendapatan = 0;
                                     foreach ($penutup as $p) :
-                                        $total_pendapatan += $p->kredit - $p->debit;
+                                        $total_pendapatan += $p->kredit;
                                     ?>
                                         <tr>
                                             <td></td>
                                             <td colspan="2"><?= $p->nm_akun ?></td>
                                             <td>Rp</td>
-                                            <td style="text-align: right;"><?= number_format($p->kredit - $p->debit, 0) ?></td>
+                                            <td style="text-align: right;"><?= number_format($p->kredit, 0) ?></td>
                                         </tr>
                                     <?php endforeach ?>
                                     <tr style="border-bottom: 2px solid black;">
@@ -69,13 +69,13 @@
                                     </tr>
                                     <?php $total_biaya = 0;
                                     foreach ($penutup_biaya as $p) :
-                                        $total_biaya += $p->debit - $p->kredit;
+                                        $total_biaya += $p->debit;
                                     ?>
                                         <tr>
                                             <td></td>
                                             <td colspan="2"><?= $p->nm_akun ?></td>
                                             <td>Rp</td>
-                                            <td style="text-align: right;"><?= number_format($p->debit - $p->kredit, 0) ?></td>
+                                            <td style="text-align: right;"><?= number_format($p->debit, 0) ?></td>
                                         </tr>
                                     <?php endforeach ?>
                                 </tbody>

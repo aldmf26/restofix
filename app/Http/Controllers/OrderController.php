@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -130,7 +131,6 @@ class OrderController extends Controller
             ->whereNotIn('view_menu.id_menu', $ids)
             ->whereNotIn('view_menu.id_menu', $idl)
             ->paginate(12);
-
         $data = [
             'menu2' => $vm,
 
@@ -255,9 +255,7 @@ class OrderController extends Controller
         $qty = $request->qty;
         $req = $request->req;
         $id_menu = $request->id_menu;
-
-
-
+        $tipe = $request->tipe;
 
 
         $detail = DB::selectOne("SELECT a.id_harga, a.id_menu, b.nm_menu, c.nm_distribusi, a.harga,b.image
@@ -267,46 +265,78 @@ class OrderController extends Controller
         where a.id_harga = '$id'
         GROUP BY a.id_harga");
 
-
         $dt_limit = DB::selectOne("SELECT dt_order.jml_jual as jml_jual, dt_limit.batas_limit as batas_limit  FROM tb_menu 
         LEFT JOIN(SELECT SUM(qty) as jml_jual, tb_harga.id_menu FROM tb_order LEFT JOIN tb_harga ON tb_order.id_harga = tb_harga.id_harga WHERE tb_order.id_lokasi = $id_lokasi AND tb_order.tgl = '$date' AND tb_order.void = 0 GROUP BY tb_harga.id_menu) dt_order ON tb_menu.id_menu = dt_order.id_menu
         LEFT JOIN(SELECT id_menu,batas_limit FROM tb_limit WHERE tgl = '$date' AND id_lokasi = $id_lokasi GROUP BY id_menu)dt_limit ON tb_menu.id_menu = dt_limit.id_menu
         WHERE lokasi = $id_lokasi AND tb_menu.id_menu = $detail->id_menu");
-        if ($dt_limit->batas_limit > 0 && $dt_limit->jml_jual + $qty > $dt_limit->batas_limit) {
-            echo $dt_limit->batas_limit - $dt_limit->jml_jual;
-            // echo 1;
-        } else {
-            $c = Cart::add(['id' => $id, 'name' => $nama, 'price' => $price, 'qty' => $qty, 'options' => ['req' => $req, 'id_menu' => $id_menu]]);
-            echo 'berhasil';
-            $set = Harga::join('tb_menu', 'tb_menu.id_menu', '=', 'tb_harga.id_menu')->where([['tb_menu.id_set', $id_menu], ['tb_harga.id_distribusi', $request->dis]])->get();
-            // dd($set);
-            // echo 2;
-            // $id_anak = $id;
-        
-            $rowHapus = $c->rowId;
-            if ($set) {
-    
-                foreach ($set as $s) {
 
-                    // dd($dapat);
-                    $nama1 = $s->nm_menu;
-                    $harga1 = $s->harga;
-                    $req1 = '';
-                    $id1 = $s->id_harga;
+        $cekStok = DB::table('tb_resep')->where('id_menu', $id_menu)->get();
 
-                    $cart1 = Cart::add(['id' => $id1, 'name' => $nama1, 'price' => $harga1, 'qty' => $s->qty * $qty, 'options' => ['req' => $req1, 'id_menu' => $s->id_menu, 'id_set' => $s->id_set]]);
-                    
-               
-                          
-                    // foreach(Cart::content() as $c) {
-                    //     Cart::update($c->rowId, ['rowId' => $rowid]);
-                    // }
+        $stok = DB::table('tb_list_bahan')->where('id_lokasi', $id_lokasi)->get();
+
+        // if(count($cekStok) < 1) {
+        //     dd('tidak ada');
+        // }else {
+        //     dd('ada');
+        // }
+        $ttl = 0;
+        foreach ($cekStok as $c) {
+            $t = DB::selectOne("SELECT sum(a.debit_makanan - a.kredit_makanan) as ttl, b.nm_bahan, c.n FROM `tb_stok_makanan` as a
+            LEFT JOIN tb_list_bahan as b on a.id_list_bahan = b.id_list_bahan
+            LEFT JOIN tb_satuan as c on b.id_satuan = c.id
+            WHERE a.id_lokasi = '$id_lokasi' AND b.id_list_bahan = '$c->id_list_bahan'
+            GROUP BY a.id_list_bahan");
+
+
+            if (empty($t)) {
+                echo 'stok kurang';
+                exit();
+            } else {
+                if ($t->ttl < ($c->qty * $qty)) {
+                    echo 'stok kurang';
+                    exit();
                 }
             }
         }
+
+        // foreach($stok as $s) {
+
+        //     dd($s->id_list_bahan);
+        //     if($cekStok != '') {
+        //         foreach($cekStok as $c) {
+
+        //         }
+        //     }
+        // }
+        if ($dt_limit->batas_limit > 0 && $dt_limit->jml_jual + $qty > $dt_limit->batas_limit) {
+            echo $dt_limit->batas_limit - $dt_limit->jml_jual;
+        } else {
+            $order = Cart::add(['id' => $id, 'name' => $nama, 'price' => $price, 'qty' => $qty, 'options' => ['req' => $req, 'id_menu' => $id_menu, 'tipe' => $tipe]]);
+
+            $resep = DB::table('tb_resep')->where('id_menu', $id_menu)->get();
+
+            if ($resep != '') {
+                for ($i = 0; $i < $qty; $i++) {
+                    foreach ($resep as $r) {
+                        $data_pakan = [
+                            'tgl' => date('Y-m-d'),
+                            'id_list_bahan' => $r->id_list_bahan,
+                            'debit_makanan' => 0,
+                            'kredit_makanan' => $r->qty,
+                            'kd_gabungan' => $order->rowId,
+                            'id_lokasi' => $id_lokasi,
+                            'admin' => Auth::user()->nama,
+                            'h_satuan' => 0,
+                        ];
+                        DB::table('tb_stok_makanan')->insert($data_pakan);
+                    }
+                }
+            }
+            echo 'berhasil';
+        }
     }
 
-    public function destroy_card()
+    public function destroy_card(Request $r)
     {
         Cart::destroy();
     }
@@ -332,6 +362,7 @@ class OrderController extends Controller
                 ->first(),
             'batas' => DB::table('tb_batas_ongkir')->first(),
             'onk' => $ongkir,
+            'id_lokasi' => Session::get('id_lokasi'),
         ];
 
         return view('order.keranjang', $data)->render();
@@ -341,29 +372,68 @@ class OrderController extends Controller
         $rowId = $request->rowid;
         $id_set = $request->id_set;
 
-        // $set = Menu::where([['id_set', $id_set]])->get();
-        // // dd($set);
-        // if($set){
-        //     Cart::remove($rowId);
-        // }
-        // dd($rowId);
-
-
         Cart::remove($rowId);
+        DB::table('tb_stok_makanan')->where('kd_gabungan', $rowId)->delete();
     }
     public function min_cart(Request $request)
     {
+        $id_menu = $request->id_menu;
+        $id_lokasi = Session::get('id_lokasi');
         $rowId = $request->rowid;
         $qty = $request->qty - 1;
         Cart::update($rowId, ['qty' => $qty]);
+        DB::table('tb_stok_makanan')->where('kd_gabungan', $rowId)->delete();
+        $resep = DB::table('tb_resep')->where('id_menu', $id_menu)->get();
+
+        if($resep != '') {
+            for ($i = 0; $i < $qty; $i++) {
+                foreach ($resep as $r) {
+                    $data_pakan = [
+                        'tgl' => date('Y-m-d'),
+                        'id_list_bahan' => $r->id_list_bahan,
+                        'debit_makanan' => 0,
+                        'kredit_makanan' => $r->qty,
+                        'kd_gabungan' => $rowId,
+                        'id_lokasi' => $id_lokasi,
+                        'admin' => Auth::user()->nama,
+                        'h_satuan' => 0,
+                    ];
+                    DB::table('tb_stok_makanan')->insert($data_pakan);
+                }
+            }
+        }
     }
 
     public function plus_cart(Request $request)
     {
         $rowId = $request->rowid;
+        $id_menu = $request->id_menu;
+        $id_lokasi = Session::get('id_lokasi');
         $qty = $request->qty + 1;
         Cart::update($rowId, ['qty' => $qty]);
+
+        DB::table('tb_stok_makanan')->where('kd_gabungan', $rowId)->delete();
+        $resep = DB::table('tb_resep')->where('id_menu', $id_menu)->get();
+
+        if ($resep != '') {
+            for ($i = 0; $i < $qty; $i++) {
+                foreach ($resep as $r) {
+                    $data_pakan = [
+                        'tgl' => date('Y-m-d'),
+                        'id_list_bahan' => $r->id_list_bahan,
+                        'debit_makanan' => 0,
+                        'kredit_makanan' => $r->qty,
+                        'kd_gabungan' => $rowId,
+                        'id_lokasi' => $id_lokasi,
+                        'admin' => Auth::user()->nama,
+                        'h_satuan' => 0,
+                    ];
+                    DB::table('tb_stok_makanan')->insert($data_pakan);
+                }
+            }
+        }
     }
+
     public function payment(Request $request)
     {
         $meja = $request->meja;
@@ -376,17 +446,16 @@ class OrderController extends Controller
 
         if ($req2) {
             foreach ($req2 as $rq => $r) {
-                if($r == null) {  
+                if ($r == null) {
                     true;
                 } else {
                     // dd($rowId);
-                    foreach($rowId as $ri => $i) {                      
-                        if($rq == $ri) {
+                    foreach ($rowId as $ri => $i) {
+                        if ($rq == $ri) {
                             $cart = Cart::content()->where('rowId', $i);
                             if ($cart->isNotEmpty()) {
                                 Cart::update($i, ["options" => ['req' => $r]]);
                             }
-
                         } else {
                             $cart = Cart::content()->where('rowId', $i);
                             if ($cart->isNotEmpty()) {
@@ -394,7 +463,6 @@ class OrderController extends Controller
                             }
                         }
                     }
-                    
                 }
             }
         } else {
@@ -438,6 +506,7 @@ class OrderController extends Controller
     {
         $id_dis = $request->id_distribusi;
         $loc = $request->session()->get('id_lokasi');
+
         $q = DB::select(
             DB::raw("SELECT MAX(RIGHT(a.no_order,4)) AS kd_max FROM tb_order AS a
         WHERE DATE(a.tgl)=CURDATE() AND a.id_lokasi = '$loc' AND a.id_distribusi = '$id_dis'"),
@@ -479,6 +548,7 @@ class OrderController extends Controller
         $orang = $request->orang;
         $lokasi = $request->session()->get('id_lokasi');
         $pesan = $request->req;
+        $kd_gabungan = 'RST' . date('dmy') . strtoupper(Str::random(3));
 
         $date = date('Y-m-d');
         $last_meja = DB::selectOne("SELECT *
@@ -489,6 +559,8 @@ class OrderController extends Controller
         foreach (Cart::content() as $c) {
             if ($c->qty > 1) {
                 for ($x = 0; $x < $c->qty; $x++) {
+                    $resep = DB::table('tb_resep')->where('id_menu', $c->options->id_menu)->get();
+
                     $data2 = [
                         'no_order' => $hasil,
                         'id_harga' => $c->id,
@@ -506,9 +578,26 @@ class OrderController extends Controller
                         'ongkir' => $ongkir,
                         'orang' => $orang,
                     ];
-                    Orderan::create($data2);
+                    $orderan = Orderan::create($data2);
+
+                    if ($resep != '') {
+                        foreach ($resep as $r) {
+                            $data_pakan = [
+                                'tgl' => date('Y-m-d'),
+                                'id_list_bahan' => $r->id_list_bahan,
+                                'debit_makanan' => 0,
+                                'kredit_makanan' => $r->qty,
+                                'kd_gabungan' => $orderan->id,
+                                'id_lokasi' => $lokasi,
+                                'admin' => Auth::user()->nama,
+                                'h_satuan' => 0,
+                            ];
+                            DB::table('tb_stok_makanan')->where('kd_gabungan', $c->rowId)->update($data_pakan);
+                        }
+                    }
                 }
             } else {
+
                 $data2 = [
                     'no_order' => $hasil,
                     'id_harga' => $c->id,
@@ -526,10 +615,27 @@ class OrderController extends Controller
                     'ongkir' => $ongkir,
                     'orang' => $orang,
                 ];
-                Orderan::create($data2);
+                $order = Orderan::create($data2);
+
+                $resep = DB::table('tb_resep')->where('id_menu', $c->options->id_menu)->get();
+
+                if ($resep != '') {
+                    foreach ($resep as $r) {
+                        $data_pakan = [
+                            'tgl' => date('Y-m-d'),
+                            'id_list_bahan' => $r->id_list_bahan,
+                            'debit_makanan' => 0,
+                            'kredit_makanan' => $r->qty,
+                            'kd_gabungan' => $order->id,
+                            'id_lokasi' => $lokasi,
+                            'admin' => Auth::user()->nama,
+                            'h_satuan' => 0,
+                        ];
+                        DB::table('tb_stok_makanan')->where('kd_gabungan', $c->rowId)->update($data_pakan);
+                    }
+                }
             }
         }
-
 
         Cart::destroy();
         return redirect()->route('meja');

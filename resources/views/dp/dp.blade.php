@@ -24,60 +24,56 @@
                                 <a href="" data-toggle="modal" data-target="#tambah"
                                     class="btn btn-info btn-sm float-right"><i class="fas fa-plus"></i> Tambah Dp</a>
                             </div>
+                            @include('flash.flash')
                             <div class="card-body">
-                                <div id="table3_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
-
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <table id="table3" class="table dataTable no-footer" width="100%" role="grid"
-                                                aria-describedby="table3_info" style="width: 100%;">
-                                                <thead>
-                                                    <tr role="row">
-                                                        <th>KODE</th>
-                                                        <th>JUMLAH</th>
-                                                        <th>CUSTOMER</th>
-                                                        <th>SERVER</th>
-                                                        <th>KETERANGAN</th>
-                                                        <th>TANGGAL</th>
-                                                        <th>METODE</th>
-                                                        <th>STATUS</th>
-                                                    </tr>
-                                                </thead>
-
-                                                <tbody>
+                                        <table class="table" id="tabelAbsen">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>KODE</th>
+                                                    <th>JUMLAH</th>
+                                                    <th>CUSTOMER</th>
+                                                    <th>SERVER</th>
+                                                    <th>KETERANGAN</th>
+                                                    <th>TANGGAL</th>
+                                                    <th>METODE</th>
+                                                    <th>STATUS</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $no = 1;
+                                                @endphp
+                                                @foreach ($dp as $d)
                                                     @php
-                                                        $no = 1;
+                                                        if ($d->status == 1) {
+                                                            $status = 'Terpakai';
+                                                        } else {
+                                                            $status = 'Aktif';
+                                                        }
                                                     @endphp
-                                                    @foreach ($dp as $d)
-                                                        @php
-                                                            if ($d->status == 1) {
-                                                                $status = 'Terpakai';
-                                                            } else {
-                                                                $status = 'Aktif';
-                                                            }
-                                                        @endphp
-                                                        <tr>
-                                                            <td style="display:none">{{ $no++ }}</td>
-                                                            <td>{{ $d->kd_dp }}</td>
-                                                            <td style="white-space: nowrap;">Rp.
-                                                                {{ number_format($d->jumlah, 0) }}</td>
-                                                            <td>{{ ucwords(Str::lower($d->nm_customer)) }}</td>
-                                                            <td>{{ ucwords(Str::lower($d->server)) }}</td>
-                                                            <td>{{ $d->ket }}</td>
-                                                            <td>{{ $d->tgl }}</td>
-                                                            <td>{{ ucwords(Str::lower($d->metode)) }}</td>
-                                                            <td>
-                                                                {{ $status }}
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                </div>
+                                                    <tr>
+                                                        <td>{{ $no++ }}</td>
+                                                        
+                                                        <td>{{ $d->kd_dp }}</td>
+                                                        <td style="white-space: nowrap;">Rp.
+                                                            {{ number_format($d->jumlah, 0) }}</td>
+                                                        <td>{{ ucwords(Str::lower($d->nm_customer)) }}</td>
+                                                        <td>{{ ucwords(Str::lower($d->server)) }}</td>
+                                                        <td>{{ $d->ket }}</td>
+                                                        <td>{{ $d->tgl }}</td>
+                                                        <td>{{ ucwords(Str::lower($d->metode)) }}</td>
+                                                        <td>
+                                                            {{ $status }}
+                                                        </td>
+                                                        <td>
+                                                            <a onclick="return confirm('Apakah Yakin dihapus')" href="{{ route('delDp', ['id_dp' => $d->id_dp, 'kd_dp' => $d->kd_dp]) }}" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
                             </div>
                         </div>
 
@@ -161,4 +157,16 @@
             </div>
         </div>
     </form>
+@endsection
+@section('script')
+<script>
+$('#tblDP').DataTable({
+
+"bSort": true,
+"scrollY": true,
+"paging": true,
+"stateSave": true,
+"scrollCollapse": true
+});
+</script>
 @endsection

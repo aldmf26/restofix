@@ -30,8 +30,7 @@
                                         <tr>
                                             <th>NO</th>
                                             <th>KETERANGAN</th>
-                                            <th>JENIS</th>
-                                            <th>DISCOUNT (RP / %)</th>
+                                            <th>DISCOUNT (%)</th>
                                             <th>DARI</th>
                                             <th>SAMPAI</th>
                                             <th>AKSI</th>
@@ -46,20 +45,10 @@
                                                     <input required type="text" class="form-control" name="ket"
                                                         placeholder="Keterangan" required="">
                                                 </td>
-                                                <td>
-                                                    <select class="form-control mr-2" name="jenis" id="">
-                                                        <option value="">- Jenis Diskon -</option>
-                                                        <option value="Rp">Rp</option>
-                                                        <option value="Persen">Persen</option>
-                                                    </select>
-                                                </td>
+                                                <input type="hidden" name="jenis" value="Persen" class="form-control">
                                                 <td>
                                                     <input type="number" class="form-control" name="disc"
                                                         placeholder="jumlah Discount" required="">
-                                                    <p class="text-warning text-sm">Jika jenis rp (cth: 70000)
-                                                        Jika jenis
-                                                        persen
-                                                        (cth: 10)</p>
                                                 </td>
                                                 <td>
                                                     <input type="date" class="form-control" name="dari" required="">
@@ -79,7 +68,6 @@
                                             <tr>
                                                 <td>{{ $no++ }}</td>
                                                 <td>{{ $d->ket }}</td>
-                                                <td>{{ $d->jenis }}</td>
                                                 <td>
                                                     {{ $d->jenis == 'Rp' ? 'Rp. ' . number_format($d->disc) : number_format($d->disc) . '%' }}
                                                 </td>
@@ -113,7 +101,7 @@
                                 
                             </div>
                             <div class="card-body">
-                                <table class="table  " id="table">
+                                <table class="table" id="tabelAbsen">
 
                                     <thead>
                                         <tr>

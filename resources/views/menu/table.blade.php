@@ -7,6 +7,7 @@
             <th>Kode Menu</th>
             <th>Nama Menu</th>
             <th>Tipe</th>
+            <th>Station</th>
             <th>Distribusi</th>
             <th></th>
             <th>On/Off</th>
@@ -17,6 +18,7 @@
     <tbody>
         @php
             $no = 1;
+           
         @endphp
         @foreach ($menu as $index => $m)
             @php
@@ -25,6 +27,7 @@
                     ->join('tb_distribusi', 'tb_harga.id_distribusi', '=', 'tb_distribusi.id_distribusi')
                     ->where('id_menu', $m->id_menu)
                     ->get();
+                
             @endphp
             <tr>
                 <td>{{ $menu->firstItem() + $index }}</td>
@@ -32,6 +35,7 @@
                 <td>{{ $m->kd_menu }}</td>
                 <td>{{ ucwords(Str::lower($m->nm_menu)) }}</td>
                 <td>{{ $m->tipe }}</td>
+                <td>{{ $m->nm_station }}</td>
                 <td style="white-space: nowrap;">
                     @foreach ($harga as $h)
                         {{ $h->nm_distribusi }} <br>

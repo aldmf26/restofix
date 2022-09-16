@@ -147,6 +147,7 @@ $total_total = $total_gojek->total + $total_not_gojek->total + $service_charge +
 
             <?php
             $total_transaksi = $transaksi->rp + $transaksi->tax + $transaksi->ser + $transaksi->rounding - $transaksi->dp;
+
             $kembalian = $transaksi->total_bayar - $total_transaksi;
             $kurangan = $transaksi->tax + $transaksi->ser + $transaksi->rounding - $transaksi->dp;
             
@@ -155,7 +156,7 @@ $total_total = $total_gojek->total + $total_not_gojek->total + $service_charge +
                 <td>Cash</td>
                 <td width="1%">:</td>
                 <td></td>
-                <td style="text-align: right;"><?= number_format($transaksi->cash - $kembalian - $kurangan, 0) ?></td>
+                <td style="text-align: right;"><?= number_format($transaksi->cash, 0) ?></td>
             </tr>
 
             <tr>
@@ -257,10 +258,10 @@ $total_total = $total_gojek->total + $total_not_gojek->total + $service_charge +
             </tr>
             <?php foreach ($kategori as $k) : ?>
             <tr>
-                <td style="white-space: nowrap;"><?= $k->nm_menu ?></td>
+                <td style="white-space: nowrap;"><?= $k->kategori ?></td>
                 <td width="1%">:</td>
                 <td style="text-align: center;" width="50%"><?= $k->qty ?></td>
-                <td style="text-align: right;"><?= number_format($k->qty * $k->harga, 0) ?></td>
+                <td style="text-align: right;"><?= number_format($k->harga, 0) ?></td>
             </tr>
             <?php endforeach ?>
             <tr>
@@ -271,7 +272,7 @@ $total_total = $total_gojek->total + $total_not_gojek->total + $service_charge +
             </tr>
             <?php foreach ($gojek as $k) : ?>
             <tr>
-                <td style="white-space: nowrap;"><?= $k->nm_menu ?></td>
+                <td style="white-space: nowrap;"><?= $k->kategori ?></td>
                 <td width="1%">:</td>
                 <td style="text-align: center;" width="50%"><?= $k->qty ?></td>
                 <td style="text-align: right;"><?= number_format($k->qty * $k->harga, 0) ?></td>

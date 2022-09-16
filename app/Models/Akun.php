@@ -11,7 +11,7 @@ class Akun extends Model
     protected $table = 'tb_akun';
     protected $fillable = [
         'kd_akun', 'no_akun', 'nm_akun', 'id_kategori', 'id_lokasi', 
-        'pl', 'neraca', 'penyesuaian', 'neraca_saldo', 'penutup', 
-        'ekuitas', 'aktiva_t', 'aktiva_l', 'pendapatan', 'pengeluaran'
+        'pl', 'neraca', 'penyesuaian', 'neraca_saldo', 'penutup','buku_bank',
+        'ekuitas', 'aktiva_t', 'aktiva_l', 'pendapatan', 'pengeluaran','jenis_akun','jenis_stok','biaya_disesuaikan'
     ];
 }

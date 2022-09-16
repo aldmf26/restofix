@@ -5,8 +5,10 @@ foreach ($jurnal as $j) :
     $kredit += $j->kredit;
 ?>
 <?php endforeach ?>
+
 <table class="table">
     <thead>
+        
         <tr>
             <th>No</th>
             <th>Post Akun</th>
@@ -17,7 +19,18 @@ foreach ($jurnal as $j) :
         </tr>
     </thead>
     <tbody>
-        <?php $i = 1;
+        @if (empty($jurnalS))
+        @else
+        <tr>
+            <td>1</td>
+            <td><?= $jurnalS->nm_akun ?></td>
+                <td></td>
+                <td>Neraca Saldo Awal</td>
+                <td><?= number_format($jurnalS->debit, 0) ?></td>
+                <td><?= number_format($jurnalS->kredit, 0) ?></td>
+        </tr>
+        @endif
+        <?php $i = empty($jurnalS) ? 1 : 2;
         foreach ($jurnal as $j) : ?>
             <tr>
                 <td><?= $i++ ?></td>

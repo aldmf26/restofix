@@ -41,15 +41,55 @@
                                                         <th>No Invoice</th>
                                                         <th>No Akun</th>
                                                         <th>Nama Akun</th>
+                                                        <th>Keterangan</th>
                                                         <th>Debit </th>
                                                         <th>Kredit</th>
                                                         <th>Aksi</th>
                                                     </tr>
                                                 </thead>
-                                                @php
-                                                    $no = 1;
-                                                @endphp
-
+                                                <tbody>
+                                                    <?php
+                                                    if (!empty($jurnal)) {
+                                                        $jurnal1 = $jurnal[0];
+                                                        $tgl = $jurnal1->tgl;
+                                                        $kd_gabungan1 = $jurnal1->kd_gabungan;
+                                                        $no = 0;
+                                                        $i = 1;
+                                                    }
+                
+                                                    foreach ($jurnal as $p) : ?>
+                
+                                                        <?php if ($kd_gabungan1 != $p->kd_gabungan) {
+                                                            $no += 1;
+                                                            $kd_gabungan1 = $p->kd_gabungan;
+                                                            $tgl = $p->tgl;
+                                                        }
+                                                        if ($no % 2 == 0) : ?>
+                                                            <tr style="background: #EEEEEE;">
+                
+                                                            <?php endif; ?>
+                                                            <td><?= $i++ ?></td>
+                                                            <?php if ($tgl != '') : ?>
+                                                                <td><?= date('d-m-y', strtotime($tgl)) ?></td>
+                                                            <?php else : ?>
+                                                                <td></td>
+                                                            <?php endif; ?>
+                                                            <td><?= $p->no_nota ?></td>
+                                                            <td><?= $p->no_akun ?></td>
+                                                            <td><?= $p->nm_akun ?></td>
+                                                            <td><?= $p->ket ?></td>
+                                                            <td><?= number_format($p->debit, 0) ?> </td>
+                                                            <td><?= number_format($p->kredit, 0) ?></td>
+                                                            <td style="white-space: nowrap;">
+                                                                <button type="button" class="btn btn-sm btn-info btn_edit" kd_gabungan='<?= $p->kd_gabungan ?>' data-toggle="modal" data-target="#edit"><i class="fa fa-edit"></i></button>
+                                                                <a href="<?= route('deletePenyesuaian', ['kd_gabungan' => $p->kd_gabungan, 'tgl' => $p->tgl]) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Apakah anda yakin ?')"><i class="fa fa-trash"></i></a>
+                                                            </td>
+                                                            </tr>
+                                                            <?php if ($kd_gabungan1 == $p->kd_gabungan) {
+                                                                $tgl = '';
+                                                            } ?>
+                                                        <?php endforeach; ?>
+                                                </tbody>
                                             </table>
                                         </div>
                                     </div>
@@ -65,7 +105,7 @@
     </div>
     <style>
         .modal-lg-max {
-            max-width: 1000px;
+            max-width: 1200px;
         }
     </style>
     {{-- modal export pertanggal --}}
@@ -80,6 +120,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
+                    <input type="hidden" name="acc" value="{{ Request::get('acc') }}">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
@@ -124,6 +165,10 @@
                                     role="tab" aria-controls="pills-contact" aria-selected="false">Atk &
                                     Perlengkapan</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link daging" id="pills-contact-tab" data-toggle="pill" href="#pills-contact"
+                                    role="tab" aria-controls="pills-contact" aria-selected="false">Daging & Ayam</a>
+                            </li>
                         </ul>
                     </div>
                     <div class="modal-body">
@@ -136,6 +181,9 @@
                         <div id="form_atk">
 
                         </div>
+                        <div id="form_daging">
+
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -146,6 +194,31 @@
         </div>
     </form>
 
+    {{-- edit jurnal --}}
+    <form action="<?= route('edit_penyesuaian') ?>" method="POST">
+        @csrf
+        <div class="modal fade" id="edit" role="dialog">
+            <div class="modal-dialog modal-lg-max">
+    
+                <div class="modal-content">
+                    <div class="modal-header bg-info">
+                        <h4 class="modal-title">Edit Journal</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body" id="get_jurnal">
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-info">Save/Edit</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+                <!-- </form> -->
+            </div>
+        </div>
+    
+    </form>
+    {{-- ---------------- --}}
     {{-- end export pertanggal --}}
     <!-- Control Sidebar -->
     <aside class="control-sidebar control-sidebar-dark">
@@ -164,34 +237,47 @@
             "autoWidth": false,
             "responsive": true,
         });
+        $('.btn_edit').click(function() {
+            var kd_gabungan = $(this).attr("kd_gabungan");
+            $("#get_jurnal").load("{{route('edit_get_jurnal')}}?kd_gabungan="+kd_gabungan, "data", function (response, status, request) {
+                this; // dom element
+                
+            });
+        });
 
         $(".penyesuaian").click(function(e) {
             e.preventDefault();
             $('#form_penyesuaian').load("<?= route('get_relation_akun') ?>", "data", function(response, status,
                 request) {
                 this; // dom element
+                $('#form_atk').hide();
+                $('#form_penyesuaian2').hide();
+                    $('#form_penyesuaian').show();
                 $("#form-jurnal").attr("action", "<?= route('add_penyesuaian_akun') ?>");
             });
         });
 
         $(document).on('click', '.penyesuaian2', function() {
-            $('#form_penyesuaian').load("<?= route('get_relation_akun') ?>", "data", function(response, status,
+            $('#form_penyesuaian2').load("<?= route('get_relation_akun') ?>", "data", function(response, status,
                 request) {
                 this; // dom element
                 $('#form_penyesuaian2').show();
                     $('#form_atk').hide();
-                    $('#form_penyesuaian').show(data);
+                    $('#form_daging').hide();
+                    $('#form_penyesuaian').hide();
                     $('#form_aktiva').hide();
                     $('#form_peralatan').hide();
                 $("#form-jurnal").attr("action", "<?= route('add_penyesuaian_akun') ?>");
             });
         });
+
         $(document).on('click', '.peralatan', function() {
             $('#form_peralatan').load("<?= route('get_relation_peralatan') ?>", "data", function(response, status,
                 request) {
                 this; // dom element
                 $('#form_peralatan').show();
                     $('#form_aktiva').hide();
+                    $('#form_daging').hide();
                     $('#form_penyesuaian').hide();
                     $('#form_penyesuaian2').hide();
                 $("#form-jurnal").attr("action", "<?= route('add_penyesuaian_peralatan') ?>");
@@ -201,7 +287,8 @@
         $(document).on('click', '.atk', function() {
             $('#form_atk').load("<?= route('get_relation_atk') ?>", "data", function(response, status, request) {
                 this; // dom element
-                $('#form_atk').show();
+                    $('#form_atk').show();
+                    $('#form_daging').hide();
                     $('#form_penyesuaian').hide();
                     $('#form_penyesuaian2').hide();
                     $('#form_penyesuaian').hide();
@@ -209,6 +296,108 @@
             });
         });
 
+        $(document).on('click', '.daging', function() {
+            $('#form_daging').load("<?= route('get_relation_daging') ?>", "data", function(response, status, request) {
+                this; // dom element
+                    $('#form_daging').show();
+                    $('#form_atk').hide();
+                    $('#form_penyesuaian').hide();
+                    $('#form_penyesuaian2').hide();
+                    $('#form_penyesuaian').hide();
+                $("#form-jurnal").attr("action", "<?= route('add_penyesuaian_daging') ?>");
+            });
+        });
+
+        $(document).on('keyup', '.akt', function() {
+            var debit = 0;
+            $(".akt").each(function() {
+                debit += parseFloat($(this).val());
+            });
+            $('.ttl').val(debit);
+
+        });
+
+        $(document).on('keyup', '.qty', function() {
+            var id = $(this).attr("id_atk");
+            var quantity = $('.quantity' + id).val();
+            var h_satuan = $('.h_satuan' + id).val();
+
+            var ttl = parseFloat(quantity) * parseFloat(h_satuan);
+
+            $('.ttl1' + id).val(ttl);
+
+
+            var debit = 0;
+            $(".ttl_op").each(function() {
+                debit += parseFloat($(this).val());
+            });
+            $('.ttl_atk').val(debit);
+
+        });
+
+        $(document).on('keyup', '.qty', function() {
+            var id = $(this).attr("id_atk");
+            var quantity = $('.quantity' + id).val();
+            var h_satuan = $('.h_satuan' + id).val();
+
+            var ttl = parseFloat(quantity) * parseFloat(h_satuan);
+
+            $('.ttl1' + id).val(ttl);
+
+
+            var debit = 0;
+            $(".ttl_op").each(function() {
+                debit += parseFloat($(this).val());
+            });
+            $('.ttl_atk').val(debit);
+
+        });
+
+        $(document).on('keyup', '.daging', function() {
+            var debit = 0;
+            $(".akt").each(function() {
+                debit += parseFloat($(this).val());
+            });
+            $('.ttl').val(debit);
+
+        });
         
+        $(document).on('keyup', '.qty_aktual', function() {
+            var detail = $(this).attr('detail');
+            var qty = $('.qty_ak' + detail).val();
+            var h_satuan = $('.h_satuan' + detail).val();
+            var qty_program = $('.qty_program' + detail).val();
+
+            selisih = parseFloat(qty_program) - parseFloat(qty);
+            debit = parseFloat(selisih) * parseFloat(h_satuan);
+
+            $('.debit' + detail).val(debit);
+            $('.selisih' + detail).val(selisih);
+        });
+        
+        $(document).on('keyup', '.qty_d_aktual', function() {
+            var id_list_bahan = $(this).attr('id_list_bahan');
+            var qty_akt = $('.qty_ak_d' + id_list_bahan).val();
+            var qty_pro = $('.qty_d_pro' + id_list_bahan).val();
+
+
+
+            selisih = parseFloat(qty_pro) - parseFloat(qty_akt);
+            $('.slsh_d' + id_list_bahan).val(selisih);
+
+            var slsh = $('.slsh_d' + id_list_bahan).val();
+            var h_satuan = $('.h_satuan_d' + id_list_bahan).val();
+
+            total = parseFloat(slsh) * parseFloat(h_satuan)
+
+            $('.tl_daging' + id_list_bahan).val(total);
+
+            var debit = 0;
+            $(".ttl_daging").each(function() {
+                debit += parseFloat($(this).val());
+            });
+
+            $('.ttl_debit_d').val(debit);
+        });
     </script>
 @endsection

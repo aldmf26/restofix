@@ -282,10 +282,34 @@ class MejaController extends Controller
         $id_harga = $request->id_harga;
         $meja = $request->meja;
         $admin = $request->admin;
-      
+        $id_lokasi = $request->session()->get('id_lokasi');
+
         for ($i = 0; $i < sizeof($id_harga); $i++) {
             if ($qty[$i] == '' || $qty[$i] == '0') {
             } else {
+                $menu = DB::table('view_menu as a')->where('id_harga', $id_harga[$i])->get();
+                foreach($menu as $m)
+                {
+                    $cekStok = DB::table('tb_resep')->where('id_menu', $m->id_menu)->get();
+                }
+                foreach($cekStok as $c) {
+                    $t = DB::selectOne("SELECT sum(a.debit_makanan - a.kredit_makanan) as ttl, b.nm_bahan, c.n FROM `tb_stok_makanan` as a
+                    LEFT JOIN tb_list_bahan as b on a.id_list_bahan = b.id_list_bahan
+                    LEFT JOIN tb_satuan as c on b.id_satuan = c.id
+                    WHERE a.id_lokasi = '$id_lokasi' AND b.id_list_bahan = '$c->id_list_bahan'
+                    GROUP BY a.id_list_bahan");
+        
+                    if(empty($t)) {
+                        echo 'stok kurang';
+                        exit();
+                    } else {
+                        if($t->ttl < ($c->qty * $qty[$i])) {
+                            echo 'stok kurang';
+                            exit();
+                        }
+                    }
+                }
+                
                 for ($q = 1; $q <= $qty[$i]; $q++) {                    
                     $dt_harga = Harga::where('id_harga', $id_harga[$i])->first();
                     $data = [
@@ -297,7 +321,7 @@ class MejaController extends Controller
                         'orang' => $orang,
                         'id_meja' => $meja,
                         'id_distribusi' => $id_dis,
-                        'id_lokasi' => $request->session()->get('id_lokasi'),
+                        'id_lokasi' => $id_lokasi,
                         'tgl' => date('Y-m-d'),
                         'admin' => $admin == '' ? Auth::user()->nama : $admin,
                         'j_mulai' => date('Y-m-d H:i:s'),

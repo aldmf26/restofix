@@ -74,7 +74,7 @@
                                             <td><?= $t->pengantar ?></td>
                                             <td><?= number_format($t->selisih, 0) ?></td>
                                             <td><?= $t->selesai ?></td>
-                                            <td><?= $t->admin ?></td>
+                                            <td><?= $t->admin ?> {{ $t->id_menu }}</td>
                                             <td style="white-space: nowrap;">
                                                 <?php if ($t->selesai == 'dimasak'){ ?>
                                                 <a href="<?= route('drop', ['id' => $t->id_order]) ?>"
@@ -167,7 +167,7 @@
                                             <div class="col-3">
                                                 <div class="from-group">
                                                     <label for="">Qty</label>
-                                                    <input type="number" name="qty" class="form-control"
+                                                    <input readonly type="number" name="qty" class="form-control"
                                                         value="<?= $o->qty ?>">
                                                 </div>
                                             </div>

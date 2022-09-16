@@ -49,21 +49,22 @@
                     "responsive": true,
                     "stateSave": true,
                 });
-
+              
                 
 
                 //Initialize Select2 Elements
                 $('.select2').select2()
-                $(function() {
-        $('.select').select2()
-        $('.select').one('select2:open', function(e) {
-            $('input.select2-search__field').prop('placeholder', 'Search...');
-        });
-    })
+                    $(function() {
+                        $('.select').select2()
+                        $('.select').one('select2:open', function(e) {
+                        $('input.select2-search__field').prop('placeholder', 'Search...');
+                        });
+                    })
                 
-            });
+                });
 
         </script>
+
         @yield('script')
         </body>
 

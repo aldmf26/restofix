@@ -7,6 +7,8 @@ use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 use PhpOffice\PhpSpreadsheet\Reader\Xls;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -39,9 +41,33 @@ class DiscountController extends Controller
         }
     }
 
+    public function downloadDiscount(Request $r)
+    {
+        $id_lokasi = Session::get('id_lokasi');
+        $dis = $id_lokasi == 1 ? 'tkm' : 'sdb';
+        $diskon = Http::get("https://ptagafood.com/api/diskon_".$dis);
+        $dt_diskon = json_decode($diskon, TRUE);
+        DB::table('tb_discount')->truncate();
+        foreach ($dt_diskon['diskon'] as $v) {
+            $data = [
+                'id_discount' => $v['id_discount'],
+                'disc' => $v['disc'],
+                'ket' => $v['ket'],
+                'jenis' => $v['jenis'],
+                'dari' => $v['dari'],
+                'expired' => $v['expired'],
+                'status' => $v['status'],
+                'lokasi' => $v['lokasi'],
+                'created_at' => $v['created_at'],
+                'updated_at' => $v['updated_at'],
+            ];
+            DB::table('tb_discount')->insert($data);
+        }
+        return redirect()->route('sukses2')->with('sukses', 'Sukses');
+    }
+
     public function addDiscount(Request $request)
     {
-
         $data = [
             'ket' => $request->ket,
             'jenis' => $request->jenis,
@@ -51,19 +77,18 @@ class DiscountController extends Controller
             'status' => 1,
             'lokasi' => $request->session()->get('id_lokasi'),
         ];
-
+     
         Discount::create($data);
 
         return redirect()->route('discount');
     }
-
 
     public function deleteDiscount(Request $request)
     {
         Discount::where('id_discount', $request->id_discount)->delete();
         return redirect()->route('discount');
     }
-
+    
     public function in_discount(Request $request)
     {
         $data = [

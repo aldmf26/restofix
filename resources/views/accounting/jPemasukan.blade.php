@@ -64,7 +64,7 @@
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
                                                         <td>{{$j->tgl}}</td>
-                                                        <td>{{$j->kd_gabungan}}</td>
+                                                        <td>{{ strtoupper($j->kd_gabungan)}}</td>
                                                         <td>{{$j->ket}}</td>
                                                         <td>{{ $j->no_akun }}</td>
                                                         <td>{{$j->nm_akun}}</td>

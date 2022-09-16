@@ -42,7 +42,7 @@ class dataOrderanController extends Controller
             $data = [
                 'title' => 'Data Orderan',
                 'logout' => $request->session()->get('logout'),
-                'tb_order' => DB::select("SELECT a.* ,b.nm_menu, c.nm_meja, d.nama AS koki1 , e.nama AS koki2, f.nama AS koki3,
+                'tb_order' => DB::select("SELECT a.*,b.id_menu ,b.nm_menu, c.nm_meja, d.nama AS koki1 , e.nama AS koki2, f.nama AS koki3,
             timestampdiff(MINUTE, a.j_mulai,a.wait) AS selisih, tb_order2.id_order1 as cek_bayar
             FROM tb_order as a 
             left join view_menu as b on a.id_harga = b.id_harga
@@ -84,7 +84,7 @@ class dataOrderanController extends Controller
         $data = [
             'title' => 'Data Orderan',
             'logout' => $request->session()->get('logout'),
-            'tb_order' => DB::select("SELECT a.* ,b.nm_menu, c.nm_meja, d.nama AS koki1 , e.nama AS koki2, f.nama AS koki3,
+            'tb_order' => DB::select("SELECT a.*,b.id_menu ,b.nm_menu, c.nm_meja, d.nama AS koki1 , e.nama AS koki2, f.nama AS koki3,
             timestampdiff(MINUTE, a.j_mulai,a.wait) AS selisih, tb_order2.id_order1 as cek_bayar
             FROM tb_order as a 
             left join view_menu as b on a.id_harga = b.id_harga
@@ -118,11 +118,10 @@ class dataOrderanController extends Controller
 
     public function drop(Request $request)
     {
-        $dt_order = Order::where('id_order', $request->id)->first();
         
+        $dt_order = Order::where('id_order', $request->id)->first();
 
         $jml = DB::selectOne("SELECT COUNT(id_order) as sisa_order FROM tb_order WHERE no_order = '$dt_order->no_order' GROUP BY no_order");
-
 
         if($jml->sisa_order > 1){
             Order::where('id_order', $request->id)->delete();
@@ -130,25 +129,27 @@ class dataOrderanController extends Controller
             Order::where('id_order', $request->id)->delete();
             Invoice::where('no_invoice', $dt_order->no_order)->delete();
         }
+        DB::table('tb_stok_makanan')->where('kd_gabungan', $request->id)->delete();
         // $jml->sisa_order;
-
         return redirect()->route('dataOrderan')->with('error', 'Data berhasil dihapus');
     }
 
     public function edit_order(Request $request)
     {
         $id_order = $request->id_order;
+      
         $data = [
             'qty' => $request->qty,
             'request' => $request->keterangan,
         ];
         Order::where('id_order', $id_order)->update($data);
-
+        
         return redirect()->route('dataOrderan')->with('error', 'Data berhasil diedit');
     }
 
     public function edit_orderAdmin(Request $request)
     {
+        
         Order::where('id_order',$request->id_order)->update(['admin' => $request->admin]);
         return redirect()->route('order1', ['tgl' => $request->dari, 'tgl2' => $request->sampai])->with('error', 'Data berhasil diedit');
     }

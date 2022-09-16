@@ -17,11 +17,11 @@ class LoginSoondobuController extends Controller
 
     public function aksiLoginSdb(Request $request)
     {
-
+        // dd('tes');
         $data = [
             'username' => $request->username,
             'password' => $request->password,
-            'jenis' => $request->jenis
+            // 'jenis' => $request->jenis
         ];
         
         // $db = Login::where('username','=',$request->username)->get();

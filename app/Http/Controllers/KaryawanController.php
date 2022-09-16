@@ -43,16 +43,24 @@ class KaryawanController extends Controller
         }
     }
 
-    public function addKaryawan(Request $request)
+    public function addKaryawan(Request $r)
     {   
         $data = [
-            'nama' => $request->nama,
-            'id_status' => $request->status,
-            'id_posisi' => $request->posisi,
-            'tgl_masuk' => $request->tgl_masuk,
+            'nama' => $r->nama,
+            'id_status' => $r->status,
+            'id_posisi' => $r->posisi,
+            'tgl_masuk' => $r->tgl_masuk,
         ];
 
         $kr = Karyawan::create($data);
+
+        $dataMajo = [
+            'nm_karyawan' => $r->status == '1' ? 'K-'.$r->nama : $r->nama,
+            'posisi' => 'WAITRESS',
+            'pangkat' => 'SERVER',
+            'tgl_join' => date('Y-m-d'),
+        ];
+        DB::table('tb_karyawan_majo')->insert($dataMajo);
 
         $data2 = [
             'id_karyawan' => $kr->id,

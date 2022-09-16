@@ -59,26 +59,50 @@ endforeach;
                                     ->join('tb_menu', 'tb_limit.id_menu', 'tb_menu.id_menu')
                                     ->where('tb_limit.id_menu', $c->options->id_menu)
                                     ->first();
-                                // dd($id_menu);
+
+                                $cekStok = DB::table('tb_resep')->where('id_menu', $c->options->id_menu)->get(); 
+                               $stok = 1;
+                                foreach($cekStok as $d) {
+                                    $t = DB::selectOne("SELECT sum(a.debit_makanan - a.kredit_makanan) as ttl, b.nm_bahan, c.n FROM `tb_stok_makanan` as a
+                                    LEFT JOIN tb_list_bahan as b on a.id_list_bahan = b.id_list_bahan
+                                    LEFT JOIN tb_satuan as c on b.id_satuan = c.id
+                                    WHERE a.id_lokasi = '$id_lokasi' AND b.id_list_bahan = '$d->id_list_bahan'
+                                    GROUP BY a.id_list_bahan");
+                                    // $stok = $t->ttl == 0 ? 0 : $c->qty * $d->qty - $t->ttl;
+                                    if($t->ttl < $d->qty ) {
+                                        $stok = 0;
+                                        break;
+                                    }
+                                }
                             @endphp
                             <div class="wrap-num-product flex-w m-l-auto m-r-0">
-                                <a class="min_cart mr-3 btn-num-product-down" id="{{ $c->rowId }}" qty="{{ $c->qty }}">                               
+                                <a class="min_cart mr-3 btn-num-product-down" id_menu="{{ $c->options->id_menu }}" id="{{ $c->rowId }}" qty="{{ $c->qty }}">                               
                                     <i class="fa fa-minus"></i></a>
                                 <input type="text" value="{{ $c->qty }}" class="text-center" style="width: 35px;"
                                     hidden>
                                     <input disabled class="mtext-104 cl3 txt-center num-product" style="margin-right: 15px; -moz-appearance: textfield; text-align: center" type="text" name="num-product1" value="{{ $c->qty }}">
-                                <?php if($limit){ ?>
+                                @if ($limit)
+                                    @if ($c->qty == $limit->jml_limit)
+                                    @else
+                                    <a class="plus_cart btn-num-product-up" id="{{ $c->rowId }}" qty="{{ $c->qty }}"
+                                        id_menu="{{ $c->options->id_menu }}"><i class="fa fa-plus"></i></a>
+                                    @endif
+                                @elseif($stok == 0)
+                                @else
+                                <a class="plus_cart btn-num-product-up" id="{{ $c->rowId }}" qty="{{ $c->qty }}"
+                                    id_menu="{{ $c->options->id_menu }}"><i class="fa fa-plus"></i></a>
+                                @endif
+                                {{-- <?php if($limit){ ?>
                                 <?php if($c->qty == $limit->jml_limit){ ?>
-                        
-                                <?php }else { ?>
+                                    <?php }else { ?>
                         
                                 <a class="plus_cart btn-num-product-up" id="{{ $c->rowId }}" qty="{{ $c->qty }}"
                                     id_menu="{{ $c->id }}"><i class="fa fa-plus"></i></a>
                                 <?php } ?>
-                                <?php }else{ ?>
+                                <?php }else if($stok == 0) { ?> <?php } ?> <?php else{ ?>
                                 <a class="plus_cart btn-num-product-up" id="{{ $c->rowId }}" qty="{{ $c->qty }}"
                                     id_menu="{{ $c->id }}"><i class="fa fa-plus"></i></a>
-                                <?php } ?>
+                                <?php } ?> --}}
                                 {{-- <a href="javascript:void(0)" id="{{ $c->rowId }}" nama="{{ $c->name }}" id_set="{{ $c->options->id_menu }}"
                                     class="text-danger ml-2 btn-num-product-up delete_cart">X</a>   --}}
                             </div>

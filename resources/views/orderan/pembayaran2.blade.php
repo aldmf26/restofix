@@ -1,59 +1,62 @@
 @extends('template.master')
 @section('content')
-    <!-- Content Wrapper. Contains page content -->
-    <style>
-        /* .icon-menu:hover{
+<!-- Content Wrapper. Contains page content -->
+<style>
+    /* .icon-menu:hover{
                                         background: #C8BED8;
                                         border-radius: 50px;
                                     } */
 
-        h6 {
-            color: #155592;
-            font-weight: bold;
-        }
+    h6 {
+        color: #155592;
+        font-weight: bold;
+    }
+</style>
 
-    </style>
 
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
 
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
+        </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
 
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- /.content-header -->
-
-        <!-- Main content -->
-        <div class="content">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-9">
-                        <a href="<?= route('meja', ['id' => $dis]) ?>" class="btn btn-sm btn-warning mb-2"><i
-                                class="fas fa-arrow-left"></i> Kembali</a>
-                        <div class="card mb-2" style="background-color: #25C584;">
-                            <div class="card-body">
-                                <h3 style="text-align: center; color:white"><?= $no ?></h3>
-                            </div>
+    <!-- Main content -->
+    <div class="content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-9">
+                    <a href="<?= route('meja', ['id' => $dis]) ?>" class="btn btn-sm btn-warning mb-2"><i
+                            class="fas fa-arrow-left"></i> Kembali</a>
+                    <div class="card mb-2" style="background-color: #25C584;">
+                        <div class="card-body">
+                            <h3 style="text-align: center; color:white">
+                                <?= $no ?>
+                            </h3>
                         </div>
-                        <div class="alert alert-success" role="alert"><b style="color:red;"><?= $no ?></b> Sudah di bayar!
-                        </div>
-                        <div class="card">
-                            <div class="card-body">
-                                <form action="<?= route('save_transaksi') ?>" method="post">
-                                    <input type="hidden" name="no_order" value="<?= $no ?>">
-                                    <table class="table">
-                                        <thead>
-                                            <th>No</th>
-                                            <th>Meja</th>
-                                            <th>Nama Menu</th>
-                                            <th>Qty</th>
-                                            <th style="text-align: center;">Harga</th>
-                                            <th>Total Harga</th>
-                                            <th>Aksi</th>
-                                        </thead>
-                                        <tbody>
-                                            <?php $i = 1;
+                    </div>
+                    <div class="alert alert-success" role="alert"><b style="color:red;">
+                            <?= $no ?>
+                        </b> Sudah di bayar!
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <form action="<?= route('save_transaksi') ?>" method="post">
+                                <input type="hidden" name="no_order" value="<?= $no ?>">
+                                <table class="table">
+                                    <thead>
+                                        <th>No</th>
+                                        <th>Meja</th>
+                                        <th>Nama Menu</th>
+                                        <th>Qty</th>
+                                        <th style="text-align: center;">Harga</th>
+                                        <th>Total Harga</th>
+                                        <th>Aksi</th>
+                                    </thead>
+                                    <tbody>
+                                        <?php $i = 1;
                                         $qty = 0;
                                         $harga = 0;
                                         $total2 = 0;
@@ -63,241 +66,290 @@
                                             $dis = $o->id_distribusi;
                                             $total2 += $o->qty_produk * $o->harga;
                                         ?>
-                                            <tr>
-                                                <td><?= $i++ ?></td>
-                                                <td><?= $o->id_meja ?></td>
-                                                <td><?= $o->nm_menu ?></td>
-                                                <td><?= $o->qty_produk ?></td>
-                                                <td><?= number_format($o->harga, 0) ?></td>
-                                                <td><?= number_format($o->qty_produk * $o->harga, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endforeach ?>
-                                        </tbody>
-                                        <?php $tb_dis = DB::table('tb_distribusi')
+                                        <tr>
+                                            <td>
+                                                <?= $i++ ?>
+                                            </td>
+                                            <td>
+                                                <?= $o->nm_meja ?>
+                                            </td>
+                                            <td>
+                                                <?= $o->nm_menu ?>
+                                            </td>
+                                            <td>
+                                                <?= $o->qty_produk ?>
+                                            </td>
+                                            <td>
+                                                <?= number_format($o->harga, 0) ?>
+                                            </td>
+                                            <td>
+                                                <?= number_format($o->qty_produk * $o->harga, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endforeach ?>
+                                    </tbody>
+                                    <?php $tb_dis = DB::table('tb_distribusi')
                                             ->where('id_distribusi', $dis)
                                             ->first();
                                         
                                         ?>
 
 
-                                        <tbody>
-                                            <tr>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2">Subtotal</td>
-                                                <td></td>
-                                                <td><?= $qty ?></td>
-                                                <td><?= number_format($harga, 0) ?></td>
-                                                <td><?= number_format($total2, 0) ?></td>
-                                                <td></td>
-                                            </tr>
+                                    <tbody>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">Subtotal</td>
+                                            <td></td>
+                                            <td>
+                                                <?= $qty ?>
+                                            </td>
+                                            <td>
+                                                <?= number_format($harga, 0) ?>
+                                            </td>
+                                            <td>
+                                                <?= number_format($total2, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">Discount</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%"><?= number_format($transaksi->discount, 0) ?> %</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">Voucher</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->voucher, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
 
-                                            <?php if ($tb_dis->service == 'Y') : ?>
-                                            <tr>
-                                                <td colspan="3">Service charge</td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->service, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php else : ?>
-                                            <?php endif ?>
-                                            <?php if ($tb_dis->ongkir == 'Y') :  ?>
-                                            <tr>
-                                                <td colspan="2">Ongkir </td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->ongkir, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php else : ?>
-                                            <?php endif ?>
-                                            <?php if ($tb_dis->tax == 'Y') :  ?>
-                                            <tr>
-                                                <td colspan="2">Tax</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->tax, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endif; ?>
+                                        <?php if ($tb_dis->service == 'Y') : ?>
+                                        <tr>
+                                            <td colspan="3">Service charge</td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->service, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php else : ?>
+                                        <?php endif ?>
+                                        <?php if ($tb_dis->ongkir == 'Y') :  ?>
+                                        <tr>
+                                            <td colspan="2">Ongkir </td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->ongkir, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php else : ?>
+                                        <?php endif ?>
+                                        <?php if ($tb_dis->tax == 'Y') :  ?>
+                                        <tr>
+                                            <td colspan="2">Tax</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->tax, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endif; ?>
 
-                                            <tr>
-                                                <td style="font-weight: bold; background-color: #C8E1F3; font-weight: bold;"
-                                                    colspan="2">Total order</td>
-                                                <td style="background-color: #C8E1F3;"></td>
-                                                <td style="font-weight: bold;background-color: #C8E1F3;font-weight: bold;">
-                                                    <?= $qty ?></td>
-                                                <td width="20%" style="background-color: #C8E1F3;font-weight: bold;"></td>
-                                                <td width="20%" style="background-color: #C8E1F3;font-weight: bold;">
-                                                    <?= number_format($transaksi->total_bayar, 0) ?>
-                                                </td>
-                                                <td style="background-color: #C8E1F3;font-weight: bold;"></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2">Discount</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%">0</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2">Voucher</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->voucher, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2">Dp</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->dp, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2">Gosend</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->gosen, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-weight: bold; background-color: #C8E1F3; font-weight: bold;"
-                                                    colspan="2">Total tagihan</td>
-                                                <td style="background-color: #C8E1F3;"></td>
-                                                <td style="font-weight: bold;background-color: #C8E1F3;font-weight: bold;">
-                                                    <?= $qty ?></td>
-                                                <td width="20%" style="background-color: #C8E1F3;font-weight: bold;"></td>
-                                                <td width="20%" style="background-color: #C8E1F3;font-weight: bold;">
-                                                    
-                                                    <?= number_format($transaksi->total_bayar <= 0 ? 0 : $transaksi->total_bayar - $transaksi->voucher - $transaksi->dp + $transaksi->gosen, 0) ?>
-                                                </td>
-                                                <td style="background-color: #C8E1F3;font-weight: bold;"></td>
-                                            </tr>
-                                            <?php if ($transaksi->cash == '0') : ?>
-                                            <?php else : ?>
-                                            <tr>
-                                                <td colspan="2">Cash</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->cash, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endif ?>
-                                            <?php if ($transaksi->d_bca == '0') : ?>
-                                            <?php else : ?>
-                                            <tr>
-                                                <td colspan="2">Debit Bca</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->d_bca, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endif ?>
-                                            <?php if ($transaksi->k_bca == '0') : ?>
-                                            <?php else : ?>
-                                            <tr>
-                                                <td colspan="2">Kredit Bca</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->k_bca, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endif ?>
-                                            <?php if ($transaksi->d_mandiri == '0') : ?>
-                                            <?php else : ?>
-                                            <tr>
-                                                <td colspan="2">Debit Mandiri</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->d_mandiri, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endif ?>
-                                            <?php if ($transaksi->k_mandiri == '0') : ?>
-                                            <?php else : ?>
-                                            <tr>
-                                                <td colspan="2">Kredit Mandiri</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%"><?= number_format($transaksi->k_mandiri, 0) ?></td>
-                                                <td></td>
-                                            </tr>
-                                            <?php endif ?>
+                                        <tr>
+                                            <td style="font-weight: bold; background-color: #C8E1F3; font-weight: bold;"
+                                                colspan="2">Total order</td>
+                                            <td style="background-color: #C8E1F3;"></td>
+                                            <td style="font-weight: bold;background-color: #C8E1F3;font-weight: bold;">
+                                                <?= $qty ?>
+                                            </td>
+                                            <td width="20%" style="background-color: #C8E1F3;font-weight: bold;"></td>
+                                            <td width="20%" style="background-color: #C8E1F3;font-weight: bold;">
+                                                @php
+                                                    $totO = $total2 * (100 - $transaksi->discount) / 100 - $transaksi->voucher;
+                                                    $to = $totO + $transaksi->service + $transaksi->tax + $transaksi->ongkir + $transaksi->round;
+                                                @endphp
+                                                <?= number_format($to < 1 ? 0 : $to, 0) ?>
+                                            </td>
+                                            <td style="background-color: #C8E1F3;font-weight: bold;"></td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <td colspan="2">Dp</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->dp, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">Gosend</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->gosen, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold; background-color: #C8E1F3; font-weight: bold;"
+                                                colspan="2">Total tagihan</td>
+                                            <td style="background-color: #C8E1F3;"></td>
+                                            <td style="font-weight: bold;background-color: #C8E1F3;font-weight: bold;">
+                                                <?= $qty ?>
+                                            </td>
+                                            <td width="20%" style="background-color: #C8E1F3;font-weight: bold;"></td>
+                                            <td width="20%" style="background-color: #C8E1F3;font-weight: bold;">
+                                                <?= number_format($transaksi->total_bayar, 0) ?>
+                                            </td>
+                                            <td style="background-color: #C8E1F3;font-weight: bold;"></td>
+                                        </tr>
+                                        <?php if ($transaksi->cash == '0') : ?>
+                                        <?php else : ?>
+                                        <tr>
+                                            <td colspan="2">Cash</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->cash, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endif ?>
+                                        <?php if ($transaksi->d_bca == '0') : ?>
+                                        <?php else : ?>
+                                        <tr>
+                                            <td colspan="2">Debit Bca</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->d_bca, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endif ?>
+                                        <?php if ($transaksi->k_bca == '0') : ?>
+                                        <?php else : ?>
+                                        <tr>
+                                            <td colspan="2">Kredit Bca</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->k_bca, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endif ?>
+                                        <?php if ($transaksi->d_mandiri == '0') : ?>
+                                        <?php else : ?>
+                                        <tr>
+                                            <td colspan="2">Debit Mandiri</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->d_mandiri, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endif ?>
+                                        <?php if ($transaksi->k_mandiri == '0') : ?>
+                                        <?php else : ?>
+                                        <tr>
+                                            <td colspan="2">Kredit Mandiri</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->k_mandiri, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <?php endif ?>
 
-                                            <tr>
-                                                <td colspan="2">Total Bayar</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>-</td>
-                                                <td width="20%">
-                                                    <?= number_format($transaksi->cash + $transaksi->d_bca + $transaksi->k_bca + $transaksi->d_mandiri + $transaksi->k_mandiri, 0) ?>
-                                                </td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2" style="background-color: #BCF9BC;">Uang Kembali</td>
-                                                <td style="background-color: #BCF9BC;"></td>
-                                                <td style="background-color: #BCF9BC;"></td>
-                                                <td style="background-color: #BCF9BC;">-</td>
-                                                <td style="background-color: #BCF9BC;" width="20%">
-                                                    <?= number_format($transaksi->cash + $transaksi->d_bca + $transaksi->k_bca + $transaksi->d_mandiri + $transaksi->k_mandiri - $transaksi->total_bayar, 0) ?>
-                                                </td>
-                                                <td style="background-color: #BCF9BC;"> <a class="btn btn-sm btn-primary"
-                                                        href="<?= route('print_nota', ['no' => $no]) ?>" target="_blank"><i
-                                                            class="fas fa-print"></i> Print</a></td>
-                                            </tr>
-                                        </tbody>
+                                        <tr>
+                                            <td colspan="2">Total Bayar</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>-</td>
+                                            <td width="20%">
+                                                <?= number_format($transaksi->cash + $transaksi->d_bca + $transaksi->k_bca + $transaksi->d_mandiri + $transaksi->k_mandiri, 0) ?>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" style="background-color: #BCF9BC;">Uang Kembali</td>
+                                            <td style="background-color: #BCF9BC;"></td>
+                                            <td style="background-color: #BCF9BC;"></td>
+                                            <td style="background-color: #BCF9BC;">-</td>
+                                            <td style="background-color: #BCF9BC;" width="20%">
+                                                @if ($transaksi->kembalian > 0)
+                                                <?= number_format($transaksi->kembalian, 0) ?>
+                                                @else
+                                                <?= number_format($transaksi->cash + $transaksi->d_bca + $transaksi->k_bca + $transaksi->d_mandiri + $transaksi->k_mandiri - $transaksi->total_bayar, 0) ?>
+                                                @endif
+                                            </td>
+                                            <td style="background-color: #BCF9BC;"> <a class="btn btn-sm btn-primary"
+                                                    href="<?= route('print_nota', ['no' => $no]) ?>" target="_blank"><i
+                                                        class="fas fa-print"></i> Print</a></td>
+                                        </tr>
+                                    </tbody>
 
 
-                                    </table>
-                                </form>
-                            </div>
+                                </table>
+                            </form>
                         </div>
-
                     </div>
+
                 </div>
-                <!-- /.row -->
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- /.content -->
+            </div>
+            <!-- /.row -->
+        </div><!-- /.container-fluid -->
     </div>
-    <!-- /.content-wrapper -->
+    <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
 
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <style>
-        .modal-lg-max {
-            max-width: 900px;
-        }
-
-    </style>
+<!-- Control Sidebar -->
+<aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+</aside>
+<style>
+    .modal-lg-max {
+        max-width: 900px;
+    }
+</style>
 @endsection
 @section('script')
-    <script>
-        $(document).ready(function() {
+<script>
+    $(document).ready(function() {
             $(document).on('click', '#cek_voucher', function(event) {
                 var kode = $('.kd_voucher').val();
                 var ttl1 = $('#total1').val();
@@ -474,10 +526,10 @@
             });
 
         });
-    </script>
+</script>
 
-    <script>
-        function selection() {
+<script>
+    function selection() {
             var selected = document.getElementById("select1").value;
             if (selected == 0) {
                 document.getElementById("input1").removeAttribute("hidden");
@@ -485,5 +537,5 @@
                 //elsewhere actions
             }
         }
-    </script>
+</script>
 @endsection

@@ -72,7 +72,7 @@ class LaporanController extends Controller
             where a.tgl_transaksi BETWEEN '$tgl1' AND '$tgl2' and a.id_lokasi = '$loc'
             GROUP BY a.id_lokasi"),
 
-            'kategori' => DB::select("SELECT b.nm_menu, c.kategori , sum(e.harga2) as harga, sum(a.qty) AS qty
+            'kategori' => DB::select("SELECT b.nm_menu, c.kategori , sum(e.harga2 * a.qty) as harga, sum(a.qty) AS qty
 FROM tb_order AS a 
 LEFT JOIN view_menu2 AS b ON b.id_harga = a.id_harga
 left join tb_kategori as c on c.kd_kategori = b.id_kategori

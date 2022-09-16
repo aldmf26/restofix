@@ -445,7 +445,17 @@ input.num-product::-webkit-inner-spin-button {
                                 title: 'Data berhasil ditambahkan'
                             });
                             load_cart();
-                        } else {
+                        } else if(data == 'stok kurang') {
+                            $('.modal-cart').modal('hide');
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                icon: 'error',
+                                title: 'Menu tidak cukup stok'
+                            });
+                        }else {
                             Swal.fire({
                                 toast: true,
                                 position: 'top-end',
@@ -491,6 +501,7 @@ input.num-product::-webkit-inner-spin-button {
             $(document).on('click', '.min_cart', function(event) {
                 var rowid = $(this).attr("id");
                 var qty = $(this).attr("qty");
+                var id_menu = $(this).attr("id_menu");
 
                 // alert(qty);
                 $.ajax({
@@ -498,7 +509,8 @@ input.num-product::-webkit-inner-spin-button {
                     method: "GET",
                     data: {
                         rowid: rowid,
-                        qty: qty
+                        qty: qty,
+                        id_menu: id_menu,
                     },
                     success: function(data) {
                         // $('#cart_session').html(data); 
@@ -509,6 +521,7 @@ input.num-product::-webkit-inner-spin-button {
             $(document).on('click', '.plus_cart', function(event) {
                 var rowid = $(this).attr("id");
                 var qty = $(this).attr("qty");
+                var id_menu = $(this).attr("id_menu");
 
                 // alert(qty);
                 $.ajax({
@@ -516,7 +529,8 @@ input.num-product::-webkit-inner-spin-button {
                     method: "GET",
                     data: {
                         rowid: rowid,
-                        qty: qty
+                        qty: qty,
+                        id_menu: id_menu,
                     },
                     success: function(data) {
                         // $('#cart_session').html(data); 

@@ -20,8 +20,7 @@
                       @include('accounting.template.flash')
                         <div class="card">
                           @php
-                            $dari = Request::get('dari') == '' ? date('Y-m-1') : Request::get('dari');
-                            $sampai = Request::get('sampai') == '' ? date('Y-m-d') : Request::get('sampai');
+                           
 
                             $tDebit = DB::table('tb_jurnal')->where([['id_lokasi', Request::get('acc')],['id_buku',3]])->whereBetween('tgl', [$dari,$sampai])->sum('debit');
                             $tKredit = DB::table('tb_jurnal')->where([['id_lokasi', Request::get('acc')],['id_buku',3]])->whereBetween('tgl', [$dari,$sampai])->sum('kredit');
@@ -76,8 +75,8 @@
                                                     <td>{{number_format($a->debit,0)}}</td>
                                                     <td>{{number_format($a->kredit,0)}}</td>
                                                     <td>
-                                                        <a href="" class="btn btn-sm btn-outline-secondary"><i class="fa fa-edit"></i></a>
-                                                        <a href="{{ route('deletejPengeluaran', ['kd_gabungan' => $a->kd_gabungan,'id_lokasi' => Request::get('acc')]) }}" onclick="return confirm('Apakah ingin dihapus ?')" class="btn btn-sm btn-outline-secondary"><i class="fa fa-trash"></i></a>
+                                                        <button class="btn btn-sm btn-outline-secondary btnEditJ" kd_gabungan='<?= $a->kd_gabungan ?>' data-toggle="modal" data-target="#edit"><i class="fa fa-edit"></i></button>
+                                                        <a href="{{ route('deletejPengeluaran', ['kd_gabungan' => $a->kd_gabungan,'id_lokasi' => Request::get('acc'), 'dari' => $dari, 'sampai' => $sampai]) }}" onclick="return confirm('Apakah ingin dihapus ?')" class="btn btn-sm btn-outline-secondary"><i class="fa fa-trash"></i></a>
                                                     </td>
                                                 </tr>
                                                 @endforeach
@@ -96,6 +95,15 @@
         <!-- /.content -->
     </div>
     {{-- modal export pertanggal --}}
+    <div class="modal fade" id="edit" role="dialog">
+      <div class="modal-dialog modal-lg">
+    
+        <!-- Modal content-->
+       
+        <div id="get_jurnal"></div>
+      </div>
+    </div>
+
 <form action="{{ route('jPengeluaran', ['acc' => Request::get('acc')]) }}" method="get">
   <div class="modal fade" id="viewtgl" tabindex="-1" role="dialog"
       aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -133,7 +141,7 @@
 </form>
     <style>
         .modal-lg-max {
-            max-width: 800px;
+            max-width: 1300px;
         }
 
     </style>
@@ -226,6 +234,7 @@
                     <h2 class="text-danger" id="testing"></h2>
                   </div>
                   <hr>
+                  <div id="kontenJP"></div>
                   <div class="modal-body detail" id="biayaUtama">
                     <div class="row">
                       <div class="col-md-3">
@@ -239,15 +248,7 @@
                         <div class="form-group">
                           <label for="list_kategori">Post Center</label>
                           <select name="id_post_center[]" class="form-control select2 id_post">
-                            @php
-                                $postCenter = DB::table('tb_post_center')->where('id_akun', 66)->get();
-                                // dd($postCenter);
-                            @endphp
-                              <?php if($postCenter){ ?>
-                                <option value="t">tes</option>
-                              <?php }else { ?>
-                                
-                              <?php } ?>
+        
                           </select>
                         </div>
                       </div>
@@ -563,6 +564,122 @@
                     </div>
         
                   </div>
+
+                  <div id="stok" class="detail">
+                    <hr>
+                    <div class="row">
+                      <div class="col-md-2">
+                        <div class="form-group">
+                          <label for="list_kategori">No Nota</label>
+                          <input type="text" class="form-control input_detail input_stok" name="no_id" required>
+                        </div>
+                      </div>
+                      <div class="col-md-2">
+                        <div class="form-group">
+                          <label for="list_kategori">Keterangan</label>
+                          <input type="text" class="form-control input_detail input_stok" name="keterangan" required>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-2">
+                        <div class="form-group">
+                          <label for="list_kategori">List Bahan = Resep</label>
+                          <select name="id_list_bahan[]" detail="1" id="id_list_bahan1" class="id_list_bahan form-control select2 satuan input_detail input_stok listBahan" required>
+                            {{-- <option value="0">- PIlih Makanan -</option>
+                            @foreach ($lBahanDaging as $lb)
+                                <option value="{{ $lb->id_list_bahan }}">{{ $lb->nm_bahan }}</option>
+                            @endforeach --}}
+                          </select>
+                        </div>
+                      </div>
+        
+                      <div class="col-md-1">
+                        <div class="form-group">
+                          <label for="list_kategori">Satuan</label>
+                          <input type="hidden" id="idSatuanResep1" readonly name="id_satuan[]" class="form-control input_detail input_stok">
+                          <input type="text" id="satuanResep1" readonly  class="form-control input_detail input_stok">
+                          <span class="text-danger" style="white-space: nowrap"><em>Satuan mengikuti resep</em></span>
+        
+                        </div>
+                      </div>
+
+                      <div class="col-md-2">
+                        <div class="form-group">
+                          <label for="list_kategori">Merk Bahan</label>
+                          <select name="id_merk_bahan[]" id="id_merk_bahan1" class="form-control select2 satuan input_detail input_stok merkBahan " required>
+                            <option value="0">- PIlih Merk -</option>
+                            <div id="km"></div>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-md-1">
+                        <div class="form-group">
+                          <label for="list_kategori">Satuan Beli</label>
+                          <select name="id_satuanBeli[]" id="satuanBeli1" class="form-control select2 satuan input_detail input_stok" required>
+                            <?php foreach ($satuan as $p) : ?>
+                              <option value="<?= $p->id ?>"><?= $p->n ?></option>
+                            <?php endforeach; ?>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-1">
+                        <div class="form-group">
+                          <label for="list_kategori">Qty Beli</label>
+                          <input type="text" class="form-control input_detail input_stok qty_monitoring qty_monitoring1" id="qtyDaging1" qty=1 name="qty[]" required>
+                        </div>
+                      </div>
+                      <div class="col-md-1">
+                        <div class="form-group">
+                          <label for="list_kategori">Unit Prize</label>
+                          <input type="text" class="form-control  input_detail input_stok total_rpDaging total_rpDaging1" name="ttl_rp[]" total_rp='1' required>
+                        </div>
+                      </div> 
+                      <div class="col-md-1">
+                        <div class="form-group">
+                          <label for="list_kategori">Qty Resep</label>
+                          <input type="text" readonly class="form-control input_detail input_stok qtyResep qtyResep1" id="qtyResep1" qty=1 name="qtyResep[]" required>
+                        </div>
+                      </div>
+                      <div class="col-md-2">
+                        <div class="form-group">
+                          <label for="list_kategori">Total Rp</label>
+                          <input readonly type="text" class="form-control input_detail input_stok t_rp t_rp1" name="t_rp[]" t_rp="1" required>
+                        </div>
+                      </div>
+                      <div class="col-lg-1">
+                        <div class="form-group">
+                          <label for="">PPN</label>
+                          <input type="text" class="form-control input_detail input_stok ppn ppn1" name="ppn[]" required>
+                        </div>
+                      </div>
+                      <input type="text" id="totalBiaya" name="biayaPenunjang[]">
+                      </div>
+        
+                      
+                      <div id="detail_stok">
+          
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <label for="">Biaya Penunjang</label> <button type="button" id="btnBiayaPenunjang" class="ml-2 btn btn-sm btn-success"><i class="fa fa-plus"></i></button>
+                        </div>
+                        
+                      </div>
+                      <div id="vBiayaPenunjang">
+                          
+                      </div>
+                      <div align="right" class="mt-2">
+                        <button type="button" id="tambah_stok" class="btn-sm btn-success">Tambah</button>
+                      </div>
+                    </div>
+        
+        
+        
+                  </div>
+
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                   <button type="submit" class="btn btn-primary pen" id="save_btn">Edit/save</button>
@@ -572,17 +689,144 @@
     </div>
 </form>
 
+{{-- tambah bahan --}}
+<form id="modalBahan">
+  @csrf
+  <div class="modal fade tbhBahan" id="tbhBahan" >
+      <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+              <div class="modal-header bg-costume">
+                  <h5 class="modal-title" id="exampleModalLabel">Tambah Bahan</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <div class="row">
+                      <div class="col-lg-5">
+                          <label for="">Nama Bahan</label>
+                          <input type="text" name="nm_bahan" id="tbh_namaBahan" class="form-control">
+                      </div>
+                      <div class="col-lg-3">
+                          <label for="">Satuan</label>
+                              @php
+                                  $sat = DB::table('tb_satuan')->whereIN('id', [12,18,22,24,25,26])->get();
+                              @endphp
+                              <select class="form-control select" id="tbh_idSatuan" name="id_satuan">
+                              <option value="">- Pilih Satuan -</option>
+                              @foreach ($sat as $a)
+                                  <option value="{{ $a->id }}">{{ $a->n }}</option>
+                              @endforeach
+                          </select>
+                      </div>
+                      <div class="col-lg-4">
+                          <label for="">Kategori</label>
+                          @php
+                              $kat = DB::table('tb_kategori_makanan')->where('id_lokasi', $id_lokasi)->get();
+                          @endphp
+                              <select class="form-control select" name="kategori" id="tbh_kategori">
+                                  <option value="">- Pilih Kategori -</option>
+                                  @foreach ($kat as $k)
+                                      <option value="{{ $k->id_kategori_makanan }}">{{ $k->nm_kategori }}</option>
+                                  @endforeach
+                          </select>
+                      </div>
+                  </div>
+
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary">Save/Edit</button>
+              </div>
+          </div>
+      </div>
+  </div>
+</form>
+{{-- ----------------- --}}
+
+{{-- tambah merk --}}
+<form id="modalMerk">
+  @csrf
+  <div class="modal fade tbhMerk" id="tbhMerk">
+      <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+              <div class="modal-header bg-costume">
+                  <h5 class="modal-title" id="exampleModalLabel">Tambah Merk Bahan</h5>
+                  <button type="button" class="close merkB" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <div class="row">
+                      <div class="col-lg-6">
+                          <label for="">Merk Bahan</label>
+                          <input required type="text" class="form-control" id="nm_merk" name="nm_merk">
+                      </div>
+                      <div class="col-lg-6">
+                          <label for="">Nama Bahan</label>
+                          <select required name="id_list_bahan" id="id_list_bahan" class="form-control select2">
+                              <option value="0">- Pilih Bahan -</option>
+                              @php
+                                  $bahan = DB::table('tb_list_bahan')->where('id_lokasi', $id_lokasi)->get();
+                              @endphp
+                              @foreach ($bahan as $b)
+                                  <option value="{{ $b->id_list_bahan }}">{{ $b->nm_bahan }}</option>
+                              @endforeach
+                          </select>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary merkB">Close</button>
+                  <button type="submit" id="btnSimpan" class="btn btn-primary btnSimpan">Save/Edit</button>
+              </div>
+          </div>
+      </div>
+  </div>
+</form>
+{{-- -------------------- --}}
+{{-- tambah merk --}}
+<form id="modalPenunjang">
+  @csrf
+  <div class="modal fade tbhPenunjang" id="tbhPenunjang">
+      <div class="modal-dialog modal-md" role="document">
+          <div class="modal-content">
+              <div class="modal-header bg-costume">
+                  <h5 class="modal-title" id="exampleModalLabel">Tambah Merk Bahan</h5>
+                  <button type="button" class="close penunjangB" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <div class="row">
+                      <div class="col-lg-12">
+                          <label for="">Nama Penunjang</label>
+                          <input required type="text" class="form-control" id="nm_penunjang" name="nm_penunjang">
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary penunjangB">Close</button>
+                  <button type="submit" id="btnSimpan" class="btn btn-primary btnSimpanPenunjang">Save/Edit</button>
+              </div>
+          </div>
+      </div>
+  </div>
+</form>
+{{-- -------------------- --}}
+
 
 
 <!-- Control Sidebar -->
     <aside class="control-sidebar control-sidebar-dark">
         <!-- Control sidebar content goes here -->
     </aside>
-    <!-- /.control-sidebar -->
+
 @endsection
+
 @section('script')
+
     <script>
-      $('.select2').select2()
       $('#table').DataTable({
                     "paging": true,
                     "lengthChange": true,
@@ -592,8 +836,7 @@
                     "autoWidth": false,
                     "responsive": true,
                 });
-    </script>
-    <script>
+                
         function sum()
         {
           var input1 = document.getElementById('ttlp').value;
@@ -624,6 +867,7 @@
 
         $('#id_pilih').change(function(){
           var id_akun = $(this).val()
+
           // alert(id_akun)
           var monitoring = []
 
@@ -642,7 +886,13 @@
             $('#aktiva').show();
             $('.input_aktiva').removeAttr('disabled', 'true');
             $("#form-jurnal").attr("action", "{{route('addjAktiva')}}");
-          } else {
+          } else if(id_akun == 228 || id_akun == 229) {
+            hide_default();
+            $('#stok').show();
+            $('.input_stok').removeAttr('disabled', 'true');
+            $("#form-jurnal").attr("action", "{{route('addjStok')}}");
+          }
+          else {
             // alert(id_akun)
             hide_default();
             $('#biayaUtama').show();
@@ -650,27 +900,123 @@
             $('#form-jurnal').attr("action", "{{route('addjPengeluaran')}}");
           }
 
+// console.log(detail);
+          
           $("body").on("keyup", ".total_rp", function() {
 
 
           var debit = 0;
+          if(id_akun == 228 || id_akun == 229) {
 
-          // console.log(detail);
-
-          $(".total_rp:not([disabled=disabled]").each(function() {
+          } else {
+            $(".total_rp:not([disabled=disabled]").each(function() {
             debit += parseFloat($(this).val());
           });
-          $('.total').val(debit);
+
+
+            $('.total').val(debit);
+          }
+          
           });
-        })
+          })
+          
+
+        $("#id_pilih").change(function (e) { 
+            var id_pilih = $(this).val();
+            $('.id_post').load("{{route('getPost')}}?id_pilih="+id_pilih, "data", function (response, status, request) {
+              this; // dom element
+              
+            });
+        });
+  
+        
+
+        $("#metode").change(function (e) { 
+            var id_pilih = $(this).val();
+            $('#id_post').load("{{route('getPost2')}}?id_pilih="+id_pilih, "data", function (response, status, request) {
+              this; // dom element
+              $('#id_post').change(function (e) { 
+                var id_pilih = $(this).val();
+                var qty = $('.qty_aktiva').val();
+                $.ajax({
+                  type: "get",
+                  url: "{{route('getHargaAktiva')}}?id_pilih="+id_pilih,
+                  success: function (data) {
+                    var ppn = (parseFloat(data) * parseFloat(qty)) * 0.1;
+                    var total = parseFloat(data) + parseFloat(ppn);
+                    
+                    $('.ttlp').val(data);
+                    $('#txt2').val(ppn);
+                    $('#total2').val(total);
+                    $('.total').val(total);
+                  }
+                });
+              });
+            });
+        });
+        $('.rp_satuan_aktiva').keyup(function (e) { 
+          var rp_beli = parseFloat($(this).val());
+            var detail = $(this).attr('rp_satuan');
+
+            var qty = parseFloat($('.qty_aktiva').val());
+            var ttl_harga_new = (rp_beli * qty) * 0.1;
+            h = isNaN(ttl_harga_new) ? 0 : ttl_harga_new
+
+            if (isNaN(h)) {
+              var rp_pajak = (rp_beli * qty);
+            } else {
+              var rp_pajak = (rp_beli * qty) + h;
+            }
+
+            // p = isNaN(rp_pajak) ? 0 : rp_pajak
+
+            // console.log(rp_beli);
+            $('.total_rp_new').val(h);
+
+
+            $('.pajak_aktiva').val(rp_pajak);
+
+            var debit = 0;
+
+            $(".pajak_aktiva:not([disabled=disabled]").each(function() {
+              debit += parseFloat($(this).val());
+            });
+            $('.total').val(debit);
+        });
     </script>
     <script>
+$(document).ready(function () {
+  $('.btnEditJ').click(function() {
+      var kd_gabungan = $(this).attr("kd_gabungan");
+      $.ajax({
+        url: "<?= route('edit_jurnal'); ?>?kd_gabungan=" + kd_gabungan,
+        method: "GET",
+        success: function(data) {
+          $('#get_jurnal').html(data);
+          $('.select').select2()
+        }
+      });
+    
+    });
 
-         
+       
+
+        $("#tambah_monitoring").click(function (e) { 
+          count_monitoring = count_monitoring + 1;
+          var id_pilih = $('#id_pilih').val();
+          var cn = $(this).attr('cn');
+              $.ajax({
+                type: "GET",
+                url: "{{route('getPost')}}?id_pilih="+id_pilih,
+                success: function (data) {
+                  $('.id_post').html(data);
+                }
+              });
+                    
+        });
           // Monitoring biaya
           var count_monitoring = 1;
           $('#tambah_monitoring').click(function() {
-
             // var no_nota_atk = $("#no_nota_atk").val();
             var html_code = "<div class='row' id='row_monitoring" + count_monitoring + "'>";
 
@@ -680,9 +1026,7 @@
             html_code += '<div class="col-md-3"><div class="form-group"><input type="text" class="form-control input_detail input_monitoring" name="ket2[]" required></div></div>';
 
 
-            html_code += '<div class="col-md-3"><div class="form-group"><select name="id_post_center[]" id="id_post ' + count_monitoring + '" cn="' + count_monitoring + '" class="form-control id_post  select"></select></div></div>';
-
-
+            html_code += '<div class="col-md-3"><div class="form-group"><select name="id_post_center[]" id="id_post' + count_monitoring + '" cn="' + count_monitoring + '" class="form-control id_post  select"></select></div></div>';
 
             html_code += '<div class="col-md-2"><div class="form-group"><select name="id_satuan[]" class="form-control select satuan input_detail input_biaya" required><?php foreach ($satuan as $s) : ?><option value="<?= $s->id ?>"><?= $s->n ?></option> <?php endforeach; ?></select></div></div>';
 
@@ -742,37 +1086,292 @@
             $('#' + delete_row).remove();
           });             
 
-          $("body").on("keyup", ".rp_satuan_aktiva", function() {
-            // $('.rp_beli').keyup(function(){
-            var rp_beli = parseFloat($(this).val());
-            var detail = $(this).attr('rp_satuan');
+          // tambah stok
+          var count = 1;
+          $('#tambah_stok').click(function() {
 
-            var qty = parseFloat($('.qty_aktiva').val());
-            var ttl_harga_new = (rp_beli * qty) * 0.1;
-            h = isNaN(ttl_harga_new) ? 0 : ttl_harga_new
+            count = count + 1
+            var html_code = "<div class='row' id='row_monitoring" + count + "'>";
 
-            if (isNaN(h)) {
-              var rp_pajak = (rp_beli * qty);
-            } else {
-              var rp_pajak = (rp_beli * qty) + h;
+          html_code += '<div class="col-md-2"><div class="form-group"><select name="id_list_bahan[]" id="id_list_bahan'+count+'" detail="'+count+'" class="form-control select listBahan"></select></div></div>';
+
+          html_code += '<div class="col-md-1"><div class="form-group"><input type="hidden" id="idSatuanResep'+count+'" readonly name="id_satuan[]" class="form-control input_detail input_stok"><input type="text" id="satuanResep'+count+'" readonly  class="form-control input_detail input_stok"></div></div>';
+
+          html_code += '<div class="col-md-2"><div class="form-group"><select name="id_merk_bahan[]" id="id_merk_bahan'+count+'" class="form-control select satuan input_detail input_stok merkBahan" required><div class="km"></div></select></div></div>';
+
+          html_code += '<div class="col-md-1"><div class="form-group"><select name="id_satuanBeli[]" id="satuanBeli'+count+'" class="form-control select satuan input_detail input_stok" required><?php foreach ($satuan as $p) : ?><option value="<?= $p->id ?>"><?= $p->n ?></option><?php endforeach; ?></select></div></div>';
+
+          html_code += '<div class="col-md-1"><div class="form-group"><input type="text" class="form-control input_detail input_monitoring qty_monitoring' + count + '" rp_satuan="' + count + '" name="qty[]" id="qtyDaging'+count+'" required></div></div>';
+
+
+
+          html_code += '<div class="col-md-1"><div class="form-group"><input type="text" class="form-control  input_detail input_monitoring total_rpDaging total_rpDaging' + count + '" name="ttl_rp[]" total_rp="' + count + '" required></div></div>';
+
+          html_code += '<div class="col-md-1"><div class="form-group"><input readonly type="text" class="form-control input_detail input_monitoring qtyResep' + count + '" rp_satuan="' + count + '" name="qtyResep[]" id="qtyResep'+count+'" required></div></div>';
+
+          html_code += '<div class="col-md-2"><div class="form-group"><input readonly type="text" class="form-control input_detail input_stok t_rp t_rp'+count+'" name="t_rp[]" t_rp="'+count+'" required></div></div>';
+
+          html_code += '<div class="col-md-1"><div class="form-group"><input type="text" class="form-control  input_detail input_monitoring ppn ppn' + count + '" name="ppn[]" ppn="' + count + '" required></div></div>';
+
+          html_code += ' <div class="col-md-12"><button type="button" name="remove" data-row="row_monitoring' + count + '" class="btn btn-danger btn-sm remove_stok float-right">-</button></div>';
+          
+          
+          html_code += "</div>";
+          
+          $('#detail_stok').append(html_code);
+          $('.select').select2()
+          loadBahan(count)
+          sumQtyDaging(count)
+        });
+
+        $(document).on('click', '.remove_stok', function() {
+          var delete_row = $(this).data("row");
+          $('#' + delete_row).remove();
+        });
+
+        var countB = 1;
+        function loadPenunjang(countB) {
+          $.ajax({
+            type: "GET",
+            url: "{{route('getBiayaPenunjang')}}?countB="+countB,
+            success: function (data) {
+              $("#vBiayaPenunjang").append(data);
+              $('.select').select2()
+              $(document).on('keyup', ".inputBiaya", function(){
+                var inputBiaya = 0
+                var debit = 0
+                var ppn = 0
+                $(".inputBiaya").each(function() {
+                  inputBiaya += parseFloat($(this).val());
+                });
+                $(".t_rp").each(function() {
+                  debit += parseFloat($(this).val());
+                });
+                $(".ppn").each(function() {
+                  ppn += parseFloat($(this).val());
+                });
+                $("#totalBiaya").val(inputBiaya);
+                $(".total").val(debit + ppn + inputBiaya);
+              })
             }
+            
+          }); 
+        }
+        $(document).on('click', '#btnBiayaPenunjang', function(){
+          countB += 1
+          loadPenunjang(countB)         
+          
+        })
 
-            // p = isNaN(rp_pajak) ? 0 : rp_pajak
+        $(document).on('click', '.remove_stokB', function() {
+          countB += 1
+          var inpBiaya = 0;
+          var delete_row = $(this).data("row");
+          $(".inputBiaya").each(function() {
+            inpBiaya += parseFloat($(".inputBiaya").val());
+          });
+          $('#' + delete_row).remove();
+        });
 
-            // console.log(rp_beli);
-            $('.total_rp_new').val(h);
+      $(document).on('change', '#pilihPenunjang', function(){
+        var v = $(this).val()
+        if(v == 'tbh') {
+          $('#tbhPenunjang').modal('toggle');
+        }
+      })
 
+        function konversiResep(satuanResep, satuanBeli,qty) {
 
-            $('.pajak_aktiva').val(rp_pajak);
+          if(satuanResep == 'GR' || satuanResep == 'gr') {
+            if(satuanBeli == 'KG' || satuanBeli == 'kg') {
+              return qty * 1000
+            }
+          } else {
+            return qty
+          }
+        }
+        sumQtyDaging(1)
+        function sumQtyDaging(count) {
+          $(document).on('keyup', '#qtyDaging'+count, function(){
+            // var satuanBeli = $("#satuanBeli1").val()
+            var satuanBeli = $("#satuanBeli"+count+" :selected").text();
+            var satuanResep = $("#satuanResep"+count+"").val();
+            var qty = $(this).val()
+            var rp = $(".total_rp"+count).val()
+            var ttl = parseFloat(qty * rp)
+            var qtyResep =  konversiResep(satuanResep,satuanBeli,qty)
 
-            var debit = 0;
+            $("#qtyResep"+count).val(qtyResep);
+            $(".t_rp"+count).val(ttl)
+          })
 
-            $(".pajak_aktiva:not([disabled=disabled]").each(function() {
+          $(document).on('keyup', '.total_rpDaging'+count, function(){
+            var qty = $("#qtyDaging"+count).val()
+            var rp = $(this).val()
+            var ttl = parseFloat(qty * rp)
+            $(".t_rp"+count).val(ttl)
+            ppn = (ttl * 10) / 100
+            $(".ppn"+count).val(ppn);
+            var debit = 0
+            var ppn = 0
+            $(".t_rp").each(function() {
               debit += parseFloat($(this).val());
             });
-            $('.total').val(debit);
-          });  
+            $(".ppn").each(function() {
+              ppn += parseFloat($(this).val());
+            });
+            $(".total").val(debit + ppn);
+          })
+        }
+
+        $(".merkB").click(function (e) { 
+            $('.tbhMerk').modal('hide')
+        });
+
+        $(".penunjangB").click(function (e) { 
+            $('.tbhPenunjang').modal('hide')
+        });
+
+        loadBahan(1)
+        
+        function loadBahan(detail) {
+          $("#id_list_bahan"+detail).load("{{route('getLbahan')}}", "data", function (response, status, request) {
+            this; // dom element
+            
+          });
+        }
+        
+        
+        $(document).on('change', '.merkBahan', function(){
+          var vMerk = $(this).val()
+          if(vMerk == 'tbhM') {
+            $('.tbhMerk').modal('show')
+          }
+        })
+
+        $("#modalBahan").submit(function (e) { 
+          e.preventDefault();
+          var tbh_namaBahan = $("#tbh_namaBahan").val()
+          var tbh_idSatuan = $("#tbh_idSatuan").val()
+          var tbh_kategori = $("#tbh_kategori").val()
+
+          $.ajax({
+            type: "POST",
+            url: "{{route('saveLbahan')}}",
+            data: {
+              nm_bahan : tbh_namaBahan,
+              id_satuan : tbh_idSatuan,
+              kategori : tbh_kategori,
+              jp : 'Y',
+              "_token" : "{{ csrf_token() }}"
+            },
+            success: function (data) {
+              Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        icon: 'success',
+                        title: 'Tambah Bahan berhasil'
+                    });
+
+              $('#tbhBahan').modal('toggle');
+              loadBahan(1)
+            }
+          });
+        });
+
+        $("#modalMerk").submit(function (e) { 
+          e.preventDefault();
+          var nm_merk = $("#nm_merk").val()
+          var id_list_bahan = $("#id_list_bahan").val()
+
+          $.ajax({
+            type: "POST",
+            url: "{{route('saveMbahan')}}",
+            data: {
+              nm_merk : nm_merk,
+              id_list_bahan : id_list_bahan,
+              "_token" : "{{ csrf_token() }}"
+            },
+            success: function (data) {
+              Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        icon: 'success',
+                        title: 'Tambah Merk berhasil'
+                    });
+
+              $('#tbhMerk').modal('toggle');
+              loadBahan(1)
+            }
+          });
+        });
+
+        $("#modalPenunjang").submit(function (e) { 
+          e.preventDefault();
+          var nm_penunjang = $("#nm_penunjang").val()
+
+          $.ajax({
+            type: "POST",
+            url: "{{route('saveBiayaPenunjang')}}",
+            data: {
+              nm_penunjang : nm_penunjang,
+              "_token" : "{{ csrf_token() }}"
+            },
+            success: function (data) {
+              Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        icon: 'success',
+                        title: 'Tambah Bahan berhasil'
+                    });
+
+              $('#tbhPenunjang').modal('toggle');
+              loadPenunjang(1)
+            }
+          });
+        });
+
+        function loadMerk(id_list_bahan,detail) {
+          $.ajax({
+            type: "GET",
+            url: "{{route('getMerkBahan')}}?id_list_bahan="+id_list_bahan,
+
+            success: function (d) {
+              $("#id_merk_bahan"+detail).html(d);
+              if(id_list_bahan == 'tbh') {
+                $('.tbhBahan').modal('show')
+              } else if(id_list_bahan == 0) {
+                $(".merkLoop").hide()
+              } 
+            }
+          });
+        }
+
+        $(document).on('change', '.listBahan', function(){
+          var id_list_bahan = $(this).val()
+          var detail = $(this).attr("detail");
+         
+          $.ajax({
+            type: "GET",
+            url: "{{route('getSatuanResep')}}?id_list_bahan="+id_list_bahan,
+            dataType: "json",
+            success: function (data) {
+       
+              $("#satuanResep"+detail).val(data.satuan)
+              $("#idSatuanResep"+detail).val(data.id_satuan)
+            }
+          });
+          loadMerk(id_list_bahan,detail)
           
+        })
+
+        
           $("body").on("change", ".proyek", function() {
             // $('.barang').change(function(){
             var proyek = $(this).val();
@@ -802,61 +1401,7 @@
               }
           });
 
-          $("body").on("change", "#id_pilih", function() {
-            alert(1)
-            var id_pilih = $(this).val();
-            var poste = $(this).attr('poste');
-            var cn = $(this).attr('cn');
-            // alert(id_pilih);
-            $.ajax({
-              url: "{{ route('getPost') }}?id_pilih="+id_pilih,
-              type: "GET",
-              success: function(data) {
-                $('.id_post').html(data);
-              }
-
-            });
-          });
-          $("body").on("change", "#metode", function() {
-            var id_pilih = $(this).val();
-            // alert(id_pilih);
-            $.ajax({
-              url: "{{ route('getPost2') }}",
-              type: "POST",
-              data: {
-                id_pilih: id_pilih,
-                "_token": "{{ csrf_token() }}",
-              },
-              // dataType: "json",
-              success: function(data) {
-                $('#id_post').html(data);
-              }
-
-            });
-          });
-          $(document).on('change', '.id_pilih', function(){
-            alert(1)
-          })
-          $("body").on("change", "id_post", function(){
-            var id_pilih = $(this).val()
-            var qty = $('.qty_aktiva').val()
-            $.ajax({
-              url: "{{ route('getHargaAktiva') }}",
-              type: "POST",
-              data: {
-                id_pilih: id_pilih,
-                "_token": "{{ csrf_token() }}",
-              },
-              success: function(data) {
-                var ppn = (parseFloat(data) * parseFloat(qty)) * 0.1;
-                var total = parseFloat(data) + parseFloat(ppn);
-                $('.ttlp').val(data);
-                $('#txt2').val(ppn);
-                $('#total2').val(total);
-                $('.total').val(total);
-              }
-            })
-          })
+          
           
       });
 
@@ -868,7 +1413,6 @@
 
       var bulan = month + 1
       var tahun = year
-      //   alert(bulan);
 
       $.ajax({
         url: "<?= route('getPenutup'); ?>?bulan="+bulan+"&tahun="+tahun,
@@ -888,12 +1432,17 @@
         }
 
       });
-
-
-
-
-
     });
 
+    $('.modal').on('hidden.bs.modal', function() {
+            //If there are any visible
+            if ($(".modal:visible").length > 0) {
+                //Slap the class on it (wait a moment for things to settle)
+                setTimeout(function() {
+                    $('body').addClass('modal-open');
+                }, 200)
+            }
+        });
+  });
     </script>
 @endsection

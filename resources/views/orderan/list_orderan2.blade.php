@@ -111,11 +111,36 @@
         }
         ?>
         @php
+        $now = date('Y-m-d');
             $diskon = DB::table('tb_discount')
-                ->where('lokasi', Session::get('id_lokasi'))
+                ->where([['lokasi', Session::get('id_lokasi')], ['dari', '<=', $now], ['expired', '>=', $now]])
                 ->get();
         @endphp
-
+        <tr>
+            <td colspan="2">Discount</td>
+            <td></td>
+            <td></td>
+            <td>-</td>
+            <td width="20%">
+                <select name="id_discount" id="data_discount" class="form-control select2bs4">
+                    <option value="0">- Pilih Discount -</option>
+                    @foreach ($diskon as $d)
+                        <option value="{{ $d->id_discount }}">{{ $d->ket }}
+                        </option>
+                    @endforeach
+                </select>
+                <input type="hidden" id="jumlah_discount" name="disc">
+                <input type="hidden" id="jenis">
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td>
+                <input type="text" id="view_discount" name="discount" class="form-control" readonly>
+            </td>
+            <td></td>
+        </tr>
         <tr>
 
             <td colspan="2">Voucher</td>
@@ -144,58 +169,9 @@
             </td>
             <td></td>
         </tr>
-        <tr>
-            <td colspan="2">Dp</td>
-            <td></td>
-            <td></td>
-            <td>-</td>
-            <td width="20%">
-                <select name="id_dp" id="data_dp" class="form-control select2bs4">
-                    <option value="0">- Pilih DP -</option>
-                    <?php foreach ($dp as $dp) : ?>
-                    <option value="<?= $dp->id_dp ?>"><?= $dp->kd_dp ?> | <?= $dp->ket ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <input type="hidden" name="id_dp" id="id_dp">
-                <input type="hidden" name="round" class="round" value="<?= $round ?>">
-                <input type="hidden" id="jumlah_dp">
-                <input type="hidden" name="kode_dp" id="kode_dp">
-            </td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="5"></td>
-            <td>
-                <input type="text" id="view_dp" name="dp" class="form-control" readonly>
-            </td>
-            <td></td>
-        </tr>
+        
         {{-- diskon --}}
-        <tr>
-            <td colspan="2">Discount</td>
-            <td></td>
-            <td></td>
-            <td>-</td>
-            <td width="20%">
-                <select name="id_discount" id="data_discount" class="form-control select2bs4">
-                    <option value="0">- Pilih Discount -</option>
-                    @foreach ($diskon as $d)
-                        <option value="{{ $d->id_discount }}">{{ $d->ket }}
-                        </option>
-                    @endforeach
-                </select>
-                <input type="hidden" id="jumlah_discount">
-                <input type="hidden" id="jenis">
-            </td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="5"></td>
-            <td>
-                <input type="text" id="view_discount" name="discount" class="form-control" readonly>
-            </td>
-            <td></td>
-        </tr>
+        
         {{--  --}}
         <?php if ($tb_dis->service == 'Y') : ?>
         <tr>
@@ -229,7 +205,36 @@
             <td></td>
         </tr>
 
-
+        <tr>
+            <td colspan="2">Dp</td>
+            <td></td>
+            <td></td>
+            <td>-</td>
+            <td width="20%">
+                <select name="id_dp" id="data_dp" class="form-control select2bs4">
+                    <option value="0">- Pilih DP -</option>
+                    <?php foreach ($dp as $dp) : ?>
+                    <option value="<?= $dp->id_dp ?>"><?= $dp->kd_dp ?> | <?= $dp->ket ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <input type="hidden" name="id_dp" id="id_dp">
+                <input type="hidden" name="round" class="round" value="<?= $round ?>">
+                <input type="hidden" name="round2" class="round2" value="<?= $round ?>">
+                <input type="hidden" name="sDiskon" class="sDiskon" value="<?= $round ?>">
+                <input type="hidden" name="vDiskon" class="vDiskon" value="">
+                <input type="hidden" id="jumlah_dp">
+           
+                <input type="hidden" name="kode_dp" id="kode_dp">
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td>
+                <input type="text" id="view_dp" name="dp" class="form-control" readonly>
+            </td>
+            <td></td>
+        </tr>
         <tr>
             <td colspan="2">Gosend</td>
             <td></td>
@@ -245,10 +250,14 @@
             <td width="20%"></td>
             <td width="20%">
                 <input type="number" id="total1" name="total_dibayar" class="form-control" value="<?= $c ?>" readonly>
+                <input type="hidden" id="totalTetap" name="totalTetap" class="form-control" value="<?= $c ?>" readonly>
+                <input type="hidden" id="tvoucher" name="tvoucher" class="form-control" value="<?= $c ?>" readonly>
                 <input type="hidden" id="total2" name="total_orderan" class="form-control" value="<?= $c ?>" readonly>
             </td>
             <td></td>
         </tr>
+        <input type="hidden" id="kembalian1" name="kembalian1" class="form-control" value="0" readonly>
+
 
         <tr>
             <td style="font-weight: bold;" colspan="3">Cash</td>

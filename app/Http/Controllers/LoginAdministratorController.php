@@ -31,8 +31,6 @@ class LoginAdministratorController extends Controller
         $user = User::where('username', $request->username)->first();
         $data_permission = DB::table('tb_acc_permission')->join('tb_acc_sub_menu', 'tb_acc_permission.permission', 'tb_acc_sub_menu.id_sub_menu')->where('tb_acc_permission.id_user', $user['id'])->get();
         $permission = [];
-        
-        
 
         // $db = Login::where('username','=',$request->username)->get();
 

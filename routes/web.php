@@ -39,6 +39,7 @@ use App\Http\Controllers\tabelDistribusiController;
 use App\Http\Controllers\TipsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VoidController;
+use App\Http\Controllers\VoucherHapusController;
 use App\Http\Controllers\WaktuTungguController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Http;
@@ -58,7 +59,7 @@ Route::get('/error', function(){
     return view('errors.403aldi');
 })->name('error');
 
-Route::get('/voucher_hapus', [OrderController::class, 'index'])->name('voucher_hapus');
+Route::get('/voucher_hapus', [VoucherHapusController::class, 'index'])->name('voucher_hapus');
 Route::get('/point_kerja', [OrderController::class, 'index'])->name('point_kerja');
 Route::get('/henKategori', [OrderController::class, 'index'])->name('henKategori');
 
@@ -88,6 +89,9 @@ Route::post('/karyawanImport', [AdministratorController::class, 'karyawanImport'
 
 // Akunting
 Route::get('/accounting', [AccountingController::class, 'index'])->name('accounting')->middleware('auth');
+Route::get('/getNoAkun', [AccountingController::class, 'getNoAkun'])->name('getNoAkun')->middleware('auth');
+Route::get('/getAkunBiaya', [AccountingController::class, 'getAkunBiaya'])->name('getAkunBiaya')->middleware('auth');
+Route::get('/katAkun', [AccountingController::class, 'katAkun'])->name('katAkun')->middleware('auth');
 Route::post('/addKategoriAkun', [AccountingController::class, 'addKategoriAkun'])->name('addKategoriAkun')->middleware('auth');
 Route::get('/delKetAkun', [AccountingController::class, 'delKetAkun'])->name('delKetAkun')->middleware('auth');
 Route::post('/addPostCenter', [AccountingController::class, 'addPostCenter'])->name('addPostCenter')->middleware('auth');
@@ -101,6 +105,7 @@ Route::get('/deleteAkun', [AccountingController::class, 'deleteAkun'])->name('de
 Route::post('/importAkun', [AccountingController::class, 'importAkun'])->name('importAkun')->middleware('auth');
 Route::get('/exportAkun', [AccountingController::class, 'exportAkun'])->name('exportAkun')->middleware('auth');
 Route::post('/relasiAkun', [AccountingController::class, 'relasiAkun'])->name('relasiAkun')->middleware('auth');
+Route::post('/add_relation_akun', [AccountingController::class, 'add_relation_akun'])->name('add_relation_akun')->middleware('auth');
 
 // lap bulanan
 Route::get('/lapBulanan', [AccountingController::class, 'lapBulanan'])->name('lapBulanan')->middleware('auth');
@@ -111,6 +116,10 @@ Route::get('/getDetailLap2', [AccountingController::class, 'getDetailLap2'])->na
 
 // cash flow
 Route::get('/cashFlow', [AccountingController::class, 'cashFlow'])->name('cashFlow')->middleware('auth');
+Route::post('/save_budget', [AccountingController::class, 'save_budget'])->name('save_budget')->middleware('auth');
+Route::get('/get_detail2', [AccountingController::class, 'get_detail2'])->name('get_detail2')->middleware('auth');
+Route::get('/get_detail', [AccountingController::class, 'get_detail'])->name('get_detail')->middleware('auth');
+Route::get('/export_all', [AccountingController::class, 'export_all'])->name('export_all')->middleware('auth');
 
 // profit & loss
 Route::get('/pl', [AccountingController::class, 'pl'])->name('pl')->middleware('auth');
@@ -134,34 +143,53 @@ Route::get('/neracaSaldoPenutup', [AccountingController::class, 'neracaSaldoPenu
 
 // neraca saldo baru
 Route::get('/neracaSaldoBaru', [AccountingController::class, 'neracaSaldoBaru'])->name('neracaSaldoBaru')->middleware('auth');
+Route::get('/addSaldoAwal', [AccountingController::class, 'addSaldoAwal'])->name('addSaldoAwal')->middleware('auth');
+Route::get('/saveSaldoAwal', [AccountingController::class, 'saveSaldoAwal'])->name('saveSaldoAwal')->middleware('auth');
+Route::get('/saldoAwalDanger', [AccountingController::class, 'saldoAwalDanger'])->name('saldoAwalDanger')->middleware('auth');
 
 // cancel jurnal
 Route::get('/cancelJurnal', [AccountingController::class, 'cancelJurnal'])->name('cancelJurnal')->middleware('auth');
 Route::post('/saveCancel', [AccountingController::class, 'saveCancel'])->name('saveCancel')->middleware('auth');
 
 Route::get('/jPenyesuaian1', [AccountingController::class, 'jPenyesuaian1'])->name('jPenyesuaian1')->middleware('auth');
+Route::get('/edit_get_jurnal', [AccountingController::class, 'edit_get_jurnal'])->name('edit_get_jurnal')->middleware('auth');
+Route::post('/edit_penyesuaian', [AccountingController::class, 'edit_penyesuaian'])->name('edit_penyesuaian')->middleware('auth');
 Route::get('/get_relation_akun', [AccountingController::class, 'get_relation_akun'])->name('get_relation_akun')->middleware('auth');
 Route::get('/get_relation_peralatan', [AccountingController::class, 'get_relation_peralatan'])->name('get_relation_peralatan')->middleware('auth');
 Route::get('/get_relation_atk', [AccountingController::class, 'get_relation_atk'])->name('get_relation_atk')->middleware('auth');
+Route::get('/get_relation_daging', [AccountingController::class, 'get_relation_daging'])->name('get_relation_daging')->middleware('auth');
+Route::get('/excel_atk', [AccountingController::class, 'excel_atk'])->name('excel_atk')->middleware('auth');
+Route::get('/print_atk', [AccountingController::class, 'print_atk'])->name('print_atk')->middleware('auth');
 Route::post('/add_penyesuaian_atk', [AccountingController::class, 'add_penyesuaian_atk'])->name('add_penyesuaian_atk')->middleware('auth');
+Route::post('/add_penyesuaian_daging', [AccountingController::class, 'add_penyesuaian_daging'])->name('add_penyesuaian_daging')->middleware('auth');
+Route::get('/deletePenyesuaian', [AccountingController::class, 'deletePenyesuaian'])->name('deletePenyesuaian')->middleware('auth');
 Route::post('/add_penyesuaian_peralatan', [AccountingController::class, 'add_penyesuaian_peralatan'])->name('add_penyesuaian_peralatan')->middleware('auth');
 Route::post('/add_penyesuaian_akun', [AccountingController::class, 'add_penyesuaian_akun'])->name('add_penyesuaian_akun')->middleware('auth');
 Route::get('/get_relation_aktiva', [AccountingController::class, 'get_relation_aktiva'])->name('get_relation_aktiva')->middleware('auth');
 Route::post('/add_penyesuaian_aktiva', [AccountingController::class, 'add_penyesuaian_aktiva'])->name('add_penyesuaian_aktiva')->middleware('auth');
 Route::get('/jPenyesuaian2', [AccountingController::class, 'jPenyesuaian2'])->name('jPenyesuaian2')->middleware('auth');
+Route::post('/add_penyesuaian', [AccountingController::class, 'add_penyesuaian'])->name('add_penyesuaian')->middleware('auth');
+Route::get('/get_aktiva', [AccountingController::class, 'get_aktiva'])->name('get_aktiva')->middleware('auth');
+Route::get('/jumlah_akv', [AccountingController::class, 'jumlah_akv'])->name('jumlah_akv')->middleware('auth');
+Route::get('/exportJP2', [AccountingController::class, 'exportJP2'])->name('exportJP2')->middleware('auth');
 
 Route::get('/jPemasukan', [AccountingController::class, 'jPemasukan'])->name('jPemasukan')->middleware('auth');
 Route::get('/delJpem', [AccountingController::class, 'delJpem'])->name('delJpem')->middleware('auth');
 Route::post('/updateJpem', [AccountingController::class, 'updateJpem'])->name('updateJpem')->middleware('auth');
 Route::get('/jPengeluaran', [AccountingController::class, 'jPengeluaran'])->name('jPengeluaran')->middleware('auth');
+Route::get('/jPengeluaran2', [AccountingController::class, 'jPengeluaran2'])->name('jPengeluaran2')->middleware('auth');
+Route::get('/loadFormJP', [AccountingController::class, 'loadFormJP'])->name('loadFormJP')->middleware('auth');
+Route::get('/edit_jurnal', [AccountingController::class, 'edit_jurnal'])->name('edit_jurnal')->middleware('auth');
+Route::post('/saveEditJurnal', [AccountingController::class, 'saveEditJurnal'])->name('saveEditJurnal')->middleware('auth');
 Route::post('/addjPengeluaran', [AccountingController::class, 'addjPengeluaran'])->name('addjPengeluaran')->middleware('auth');
 Route::post('/addjAtk', [AccountingController::class, 'addjAtk'])->name('addjAtk')->middleware('auth');
 Route::post('/addjPeralatan', [AccountingController::class, 'addjPeralatan'])->name('addjPeralatan')->middleware('auth');
 Route::post('/addjAktiva', [AccountingController::class, 'addjAktiva'])->name('addjAktiva')->middleware('auth');
+Route::post('/addjStok', [AccountingController::class, 'addjStok'])->name('addjStok')->middleware('auth');
 Route::post('/getProjek', [AccountingController::class, 'getProjek'])->name('getProjek')->middleware('auth');
 Route::get('/getPost', [AccountingController::class, 'getPost'])->name('getPost')->middleware('auth');
-Route::post('/getPost2', [AccountingController::class, 'getPost2'])->name('getPost2')->middleware('auth');
-Route::post('/getHargaAktiva', [AccountingController::class, 'getHargaAktiva'])->name('getHargaAktiva')->middleware('auth');
+Route::get('/getPost2', [AccountingController::class, 'getPost2'])->name('getPost2')->middleware('auth');
+Route::get('/getHargaAktiva', [AccountingController::class, 'getHargaAktiva'])->name('getHargaAktiva')->middleware('auth');
 Route::get('/deletejPengeluaran', [AccountingController::class, 'deletejPengeluaran'])->name('deletejPengeluaran')->middleware('auth');
 
 Route::get('/neracaSaldo', [AccountingController::class, 'neracaSaldo'])->name('neracaSaldo')->middleware('auth');
@@ -170,11 +198,39 @@ Route::get('/bukuBesar', [AccountingController::class, 'bukuBesar'])->name('buku
 Route::get('/detailBukuBesar', [AccountingController::class, 'detailBukuBesar'])->name('detailBukuBesar')->middleware('auth');
 Route::get('/printBukuBesar', [AccountingController::class, 'printBukuBesar'])->name('printBukuBesar')->middleware('auth');
 Route::get('/exportBukuBesar', [AccountingController::class, 'exportBukuBesar'])->name('exportBukuBesar')->middleware('auth');
+Route::get('/exportDetailBukuBesar', [AccountingController::class, 'exportDetailBukuBesar'])->name('exportDetailBukuBesar')->middleware('auth');
 
 // more
 Route::get('/kelPeralatan', [AccountingController::class, 'kelPeralatan'])->name('kelPeralatan')->middleware('auth');
 Route::post('/editKelPeralatan', [AccountingController::class, 'editKelPeralatan'])->name('editKelPeralatan')->middleware('auth');
 
+// list bahan
+Route::get('/lBahan', [AccountingController::class, 'lBahan'])->name('lBahan')->middleware('auth');
+Route::get('/mBahan', [AccountingController::class, 'mBahan'])->name('mBahan')->middleware('auth');
+Route::post('/saveMbahan', [AccountingController::class, 'saveMbahan'])->name('saveMbahan')->middleware('auth');
+Route::post('/editMbahan', [AccountingController::class, 'editMbahan'])->name('editMbahan')->middleware('auth');
+Route::get('/delMbahan', [AccountingController::class, 'delMbahan'])->name('delMbahan')->middleware('auth');
+Route::get('/getSatuanResep', [AccountingController::class, 'getSatuanResep'])->name('getSatuanResep')->middleware('auth');
+Route::get('/getMerkBahan', [AccountingController::class, 'getMerkBahan'])->name('getMerkBahan')->middleware('auth');
+Route::get('/getLbahan', [AccountingController::class, 'getLbahan'])->name('getLbahan')->middleware('auth');
+Route::get('/tbhBahan', [AccountingController::class, 'tbhBahan'])->name('tbhBahan')->middleware('auth');
+Route::get('/getEditMbahan', [AccountingController::class, 'getEditMbahan'])->name('getEditMbahan')->middleware('auth');
+Route::get('/getKategoriMakanan', [AccountingController::class, 'getKategoriMakanan'])->name('getKategoriMakanan')->middleware('auth');
+Route::get('/delKategoriMakanan', [AccountingController::class, 'delKategoriMakanan'])->name('delKategoriMakanan')->middleware('auth');
+Route::post('/addKategoriMakanan', [AccountingController::class, 'addKategoriMakanan'])->name('addKategoriMakanan')->middleware('auth');
+Route::post('/saveLbahan', [AccountingController::class, 'saveLbahan'])->name('saveLbahan')->middleware('auth');
+Route::post('/editLbahan', [AccountingController::class, 'editLbahan'])->name('editLbahan')->middleware('auth');
+Route::get('/delLbahan', [AccountingController::class, 'delLbahan'])->name('delLbahan')->middleware('auth');
+Route::get('/stokMakanan', [AccountingController::class, 'stokMakanan'])->name('stokMakanan')->middleware('auth');
+Route::get('/delStokMakanan', [AccountingController::class, 'delStokMakanan'])->name('delStokMakanan')->middleware('auth');
+Route::get('/lResep', [AccountingController::class, 'lResep'])->name('lResep')->middleware('auth');
+Route::post('/saveResep', [AccountingController::class, 'saveResep'])->name('saveResep')->middleware('auth');
+Route::get('/delResep', [AccountingController::class, 'delResep'])->name('delResep')->middleware('auth');
+Route::post('/editResep', [AccountingController::class, 'editResep'])->name('editResep')->middleware('auth');
+Route::get('/getEditResep', [AccountingController::class, 'getEditResep'])->name('getEditResep')->middleware('auth');
+Route::get('/delEditResep', [AccountingController::class, 'delEditResep'])->name('delEditResep')->middleware('auth');
+Route::get('/getBiayaPenunjang', [AccountingController::class, 'getBiayaPenunjang'])->name('getBiayaPenunjang')->middleware('auth');
+Route::post('/saveBiayaPenunjang', [AccountingController::class, 'saveBiayaPenunjang'])->name('saveBiayaPenunjang')->middleware('auth');
 // menu
 Route::get('/accMenu', [AccountingController::class, 'accMenu'])->name('accMenu')->middleware('auth');
 Route::post('/saveAccMenu', [AccountingController::class, 'saveAccMenu'])->name('saveAccMenu')->middleware('auth');
@@ -227,6 +283,9 @@ Route::post('/editMenuCheck', [MenuController::class, 'editMenuCheck'])->name('e
 Route::post('/plusDistribusi', [MenuController::class, 'plusDistribusi'])->name('plusDistribusi')->middleware('auth');
 Route::post('/importMenu', [MenuController::class, 'importMenu'])->name('importMenu')->middleware('auth');
 Route::get('/exportMenu', [MenuController::class, 'exportMenu'])->name('exportMenu')->middleware('auth');
+Route::get('/station', [MenuController::class, 'station'])->name('station')->middleware('auth');
+Route::post('/addStation', [MenuController::class, 'addStation'])->name('addStation')->middleware('auth');
+Route::get('/delStation', [MenuController::class, 'delStation'])->name('delStation')->middleware('auth');
 // -----------------------------------------------                
 
 Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan')->middleware('auth');
@@ -247,7 +306,7 @@ Route::get('/in_voucher', [DiscountController::class, 'in_voucher'])->name('in_v
 Route::get('/un_voucher', [DiscountController::class, 'un_voucher'])->name('un_voucher')->middleware('auth');
 Route::get('/voucher_pembayaran', [DiscountController::class, 'voucher_pembayaran'])->name('voucher_pembayaran')->middleware('auth');
 Route::get('/exportVoucher', [DiscountController::class, 'exportVoucher'])->name('exportVoucher')->middleware('auth');
-
+Route::get('/downloadDiscount', [DiscountController::class, 'downloadDiscount'])->name('downloadDiscount');
 
 Route::get('/distribusi', [DistribusiController::class, 'index'])->name('distribusi')->middleware('auth');
 Route::post('/addDistribusi', [DistribusiController::class, 'addDistribusi'])->name('addDistribusi')->middleware('auth');
@@ -311,6 +370,7 @@ Route::patch('/editTips', [TipsController::class, 'editTips'])->name('editTips')
 Route::get('/deleteTips', [TipsController::class, 'deleteTips'])->name('deleteTips')->middleware('auth');
 
 Route::get('/dp', [DpController::class, 'index'])->name('dp')->middleware('auth');
+Route::get('/delDp', [DpController::class, 'delDp'])->name('delDp')->middleware('auth');
 Route::post('/addDp', [DpController::class, 'addDp'])->name('addDp')->middleware('auth');
 // --------------------------------------------------------------------------------------
 
@@ -415,15 +475,16 @@ Route::get('/all_checker', [OrderanController::class, 'all_checker'])->name('all
 
 // head ---------------------------------------------------------
 Route::get('/get_head', [HeadController::class, 'get_head'])->name('get_head');
+Route::get('/getSearchHead', [HeadController::class, 'getSearchHead'])->name('getSearchHead');
 Route::post('/koki1', [HeadController::class, 'koki1'])->name('koki1');
 Route::post('/koki2', [HeadController::class, 'koki2'])->name('koki2');
 Route::post('/koki3', [HeadController::class, 'koki3'])->name('koki3');
 Route::post('/un_koki1', [HeadController::class, 'un_koki1'])->name('un_koki1');
 Route::post('/un_koki2', [HeadController::class, 'un_koki2'])->name('un_koki2');
 Route::post('/un_koki3', [HeadController::class, 'un_koki3'])->name('un_koki3');
-
 Route::get('/head_selesei', [HeadController::class, 'head_selesei'])->name('head_selesei');
 Route::get('/distribusi3', [HeadController::class, 'distribusi'])->name('distribusi3');
+Route::get('/view1jam', [HeadController::class, 'view1jam'])->name('view1jam');
 // end head -----------------------------------------------------
 
 // tambah sub navbar menu

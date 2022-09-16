@@ -87,7 +87,6 @@ class InvoiceController extends Controller
         $transaksi = Transaksi::where('no_order', $id_invoice)->first();
         $order2 = Order2::where('no_order2', $id_invoice)->first();
         $loc = $r->session()->get('id_lokasi');
-
         if ($voucher) {
             if ($voucher->status == 'T') {
                 Voucher_hapus::where('kode_voucher', $kode_voucher)->update(['status' => 'Y']);
@@ -100,6 +99,7 @@ class InvoiceController extends Controller
                     'nominal_invoice' =>  $transaksi->total_bayar,
                     'id_lokasi' => $loc
                 ];
+                
                 Tb_hapus_invoice::create($data);
                 Orderan::where('no_order', $order2->no_order)->update(['aktif' => '1']);
                 Transaksi::where('no_order', $id_invoice)->delete();

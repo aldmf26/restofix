@@ -54,7 +54,9 @@ class MenuController extends Controller
     {
       
         $data = [
-            'menu' => DB::table('tb_menu')->select('tb_menu.*', 'tb_kategori.*')->join('tb_kategori', 'tb_menu.id_kategori', '=', 'tb_kategori.kd_kategori')->where('tb_menu.lokasi', $request->id_lokasi)->orderBy('tb_menu.id_menu', 'DESC')->paginate(10),
+            'menu' => DB::table('tb_menu')->join('tb_kategori', 'tb_menu.id_kategori', '=', 'tb_kategori.kd_kategori')
+            ->join('tb_station', 'tb_menu.id_station', 'tb_station.id_station')
+            ->where('tb_menu.lokasi', $request->id_lokasi)->orderBy('tb_menu.id_menu', 'DESC')->paginate(10),
             'id_lokasi' => $request->id_lokasi,
             
         ];
@@ -65,8 +67,8 @@ class MenuController extends Controller
     {
         $data = [
             'menu' => DB::table('tb_menu')
-            ->select('tb_menu.*', 'tb_kategori.*')
-            ->join('tb_kategori', 'tb_menu.id_kategori', '=', 'tb_kategori.kd_kategori')->where('tb_menu.lokasi', $request->id_lokasi)
+            ->join('tb_kategori', 'tb_menu.id_kategori', '=', 'tb_kategori.kd_kategori')
+            ->join('tb_station', 'tb_menu.id_station', '=', 'tb_station.id_station')->where('tb_menu.lokasi', $request->id_lokasi)
             ->where('tb_menu.nm_menu','like','%'.$request->keyword.'%')
             ->orWhere('tb_kategori.kategori','like','%'.$request->keyword.'%')
             ->orWhere('tb_menu.tipe','like','%'.$request->keyword.'%')
@@ -275,8 +277,7 @@ class MenuController extends Controller
             'id_kategori' => $request->id_kategori,
             'kd_menu' => $kd_menu,
             'nm_menu' => $request->nm_menu,
-            'id_set' => $request->id_set,
-            'qty' => $request->setQty,
+            'id_station' => $request->id_station,
             'id_kategori' => $request->id_kategori,
             'tipe' => $request->tipe,
             'image' => $foto,
@@ -318,6 +319,7 @@ class MenuController extends Controller
             'nm_menu' => $request->nm_menu,
             'id_kategori' => $request->id_kategori,
             'tipe' => $request->tipe,
+            'id_station' => $request->id_station,
             'lokasi' => $request->id_lokasi,
             'aktif' => 'on',
 
@@ -368,5 +370,27 @@ class MenuController extends Controller
         } else {
             return back()->with('error', 'Distribusi sudah ada');
         }
+    }
+    public function station(Request $r) 
+    {
+        $data = [
+            'id_lokasi' => $r->id_lokasi
+        ];
+      
+        return view('menu.station',$data);
+    }
+    public function addStation(Request $r)
+    {
+        DB::table('tb_station')->insert([
+            'nm_station' => $r->nm_station,
+            'id_lokasi' => $r->id_lokasi,
+        ]);
+
+        
+    }
+
+    public function delStation(Request $r)
+    {
+        DB::table('tb_station')->where('id_station', $r->id_station)->delete();
     }
 }

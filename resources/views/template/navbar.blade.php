@@ -103,7 +103,7 @@
 
 
                 <li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"> <img
-                            src="https://upperclassindonesia.com/uploads/img_menu/warning-sign.png"><span>Peringatan</span>
+                            src=""><span>Peringatan</span>
                         <b class="caret"></b></a>
                     <ul class="dropdown-menu">
                         @php

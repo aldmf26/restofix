@@ -26,7 +26,7 @@ class LoginTakemoriController extends Controller
         $data = [
             'username' => $request->username,
             'password' => $request->password,
-            'jenis' => $request->jenis,     
+            // 'jenis' => $request->jenis,     
         ];
 
        

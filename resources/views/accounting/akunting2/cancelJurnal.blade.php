@@ -30,7 +30,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Bulan-Tahun</th>
-                                                <!-- <th>Penyesuaian</th> -->
+                                                <th>Penyesuaian</th>
                                                 <th>Penutup</th>
                                             </tr>
                                         </thead>
@@ -45,14 +45,14 @@
                                             <?php $penutup = DB::selectOne("SELECT MONTH(a.tgl) as bulan2 FROM tb_jurnal as a where MONTH(a.tgl) = '$t->bulan' and YEAR(a.tgl) = '$t->tahun' and a.id_buku = '5' and a.id_lokasi = '$id_lokasi' GROUP BY MONTH(a.tgl) "); ?>
                                             <tr>
                                                 <td><?= $t->bulan ?> - <?= $t->tahun ?> </td>
-                                                <!-- <td>
+                                                <td>
 
                                                         <?php if (empty($penyesuaian)) : ?>
                                                             <input type="checkbox" class="form-checkbox1" id_checkbox="<?= $t->id_jurnal ?>" name="penyesuaian[]" id="" value="">
                                                         <?php else : ?>
                                                             <input type="checkbox" class="form-checkbox1" id_checkbox="<?= $t->id_jurnal ?>" name="penyesuaian[]" id="" value="<?= $t->bulan ?>" checked>
                                                         <?php endif ?>
-                                                    </td> -->
+                                                    </td>
                                                 <td>
                                                     <input type="hidden" name="bulan[]" class="bulan<?= $t->id_jurnal ?>"
                                                         value="<?= $t->bulan ?>">
@@ -75,8 +75,8 @@
                                             <input type="hidden" name="bln_pen" class="bln_pen">
                                             <input type="hidden" name="thn_pen" class="thn_pen">
 
-                                            <!-- <input type="text" name="bln" class="bln">
-                                            <input type="text" name="thn" class="thn"> -->
+                                            {{-- <input type="text" name="bln" class="bln">
+                                            <input type="text" name="thn" class="thn"> --}}
 
                                             <input type="hidden" name="bulan_akhir" value="<?= $t->bulan ?>">
                                             <input type="hidden" name="tahun_akhir" value="<?= $t->tahun ?>">
@@ -112,14 +112,14 @@
                 // alert(bulan);
                 if ($(this).is(':checked')) {
                     var nilai1 = '';
-                    $('.bln').val(nilai1);
+                    $('.bln_pen').val(nilai1);
                     var nilai2 = '';
-                    $('.thn').val(nilai2);
+                    $('.thn_pen').val(nilai2);
                 } else {
                     var nilai1 = bulan;
-                    $('.bln').val(nilai1);
+                    $('.bln_pen').val(nilai1);
                     var nilai2 = tahun;
-                    $('.thn').val(nilai2);
+                    $('.thn_pen').val(nilai2);
                 }
             });
             $('.form-checkbox2').click(function() {

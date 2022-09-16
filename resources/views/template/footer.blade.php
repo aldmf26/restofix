@@ -58,6 +58,8 @@
                 $('.animated-icon1').toggleClass('open');
             }
         });
+
+       
     });
 
     $(function() {
@@ -125,12 +127,15 @@
             "autoWidth": true
         });
 
+        
+
     });
 </script>
 
 <script>
     $(function() {
         $('.select').select2()
+        $('.selectResep').select2()
         $('.select').one('select2:open', function(e) {
             $('input.select2-search__field').prop('placeholder', 'Search...');
         });

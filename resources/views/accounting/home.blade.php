@@ -260,7 +260,7 @@
         <div class="row justify-content-center">
             <div class="col-sm-4">
                 <div class="card card-signin my-5">
-                    <a href="{{ route('dashboard', ['acc' => 1]) }}">
+                    <a href="{{ route('jPengeluaran', ['acc' => 1]) }}">
                         <div class="card-body">
                             <center>
                                 <img src="{{ asset('assets') }}/menu/img/Takemori.svg" width="80%" alt="">
@@ -275,7 +275,7 @@
             <div class="col-sm-4">
                 <a href="">
                     <div class="card card-signin my-5">
-                        <a href="{{ route('dashboard', ['acc' => 2]) }}">
+                        <a href="{{ route('jPengeluaran', ['acc' => 2]) }}">
                             <div class="card-body">
                                 <center>
                                     <img src="{{ asset('assets') }}/menu/img/soondobu.jpg" width="60%" alt="">

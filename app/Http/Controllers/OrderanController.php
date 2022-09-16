@@ -141,9 +141,11 @@ class OrderanController extends Controller
         $kode_dp = $request->kode_dp;
         $id_distribusi = $request->id_distribusi;
         $lokasi = $request->session()->get('id_lokasi');
-
+        $voucher = $request->voucher;
+        $disc = $request->disc;
         $dis = DB::table('tb_distribusi')->where('id_distribusi', $id_distribusi)->first();
         $kode = substr($dis->nm_distribusi, 0, 2);
+
         $q = DB::select(
             DB::raw("SELECT MAX(RIGHT(a.no_order2,4)) AS kd_max FROM tb_order2 AS a
         WHERE DATE(a.tgl)=CURDATE() AND a.id_lokasi = '$lokasi' AND a.id_distribusi = '$id_distribusi'"),
@@ -157,6 +159,7 @@ class OrderanController extends Controller
         } else {
             $kd = '0001';
         }
+        
         date_default_timezone_set('Asia/Makassar');
         $no_invoice = date('ymd') . $kd;
 
@@ -220,8 +223,9 @@ class OrderanController extends Controller
             'ongkir' => $request->ongkir,
             'service' => $request->service,
             'tax' => $request->tax,
+            'kembalian' => $request->kembalian1,
         ];
-        Transaksi::create($data);
+        DB::table('tb_transaksi')->insert($data);
 
         $data2 = [
             'terpakai' => 'sudah',
@@ -274,29 +278,132 @@ class OrderanController extends Controller
         $hs = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Hutang Service Charge 7%']])->first();
         $pd = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Pb1 Pajak Daerah 10%']])->first();
         $pdd = Akun::where([['id_lokasi', $lokasi], ['nm_akun', 'Pendapatan dibayar dimuka']])->first();
-        // dd($krbca);
-        // if($dp > 0) {
-        //     $kode_akun = Jurnal::where('id_akun', $pdd->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+        
+        
+        if($dp > 0) {
+            $kode_akun = Jurnal::where('id_akun', $pdd->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+            if ($kode_akun == 0) {
+                $kode_akun = 1;
+            } else {
+                $kode_akun += 1;
+            }
+            $pdd = [
+                'id_buku' => 1,
+                'id_lokasi' => $lokasi,
+                'id_akun' => $pdd->id_akun,
+                'kd_gabungan' => $hasil,
+                'no_nota' => $pdd->kd_akun . date('Y-m') . '-' . $kode_akun,
+                'debit' => $dp,
+                'kredit' => 0,
+                'tgl' => date('Y-m-d'),
+                'ket' => $kode_dp,
+                'admin' => Auth::user()->nama,
+            ];
+            Jurnal::create($pdd);
 
-        //     if ($kode_akun == 0) {
-        //         $kode_akun = 1;
-        //     } else {
-        //         $kode_akun += 1;
-        //     }
-        //     $dbca = [
-        //         'id_buku' => 1,
-        //         'id_lokasi' => $lokasi,
-        //         'id_akun' => $pdd->id_akun,
-        //         'kd_gabungan' => $hasil,
-        //         'no_nota' => $pdd->kd_akun . date('Y-m') . '-' . $kode_akun,
-        //         'debit' => $dp,
-        //         'kredit' => 0,
-        //         'tgl' => date('Y-m-d'),
-        //         'ket' => 'Dp '.$kode_dp,
-        //         'admin' => Auth::user()->nama,
-        //     ];
-        //     Jurnal::create($dbca);
-        // }
+            if($request->kembalian1 > 0) {
+                $kode_akun = Jurnal::where('id_akun',$kas->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
+    
+                if ($kode_akun == 0) {
+                    $kode_akun = 1;
+                } else {
+                    $kode_akun += 1;
+                }
+                
+                $csh = [
+                    'id_buku' => 1,
+                    'id_lokasi' => $lokasi,
+                    'id_akun' =>$kas->id_akun,
+                    'kd_gabungan' => $hasil,
+                    'no_nota' =>$kas->kd_akun . date('Y-m') . '-' . $kode_akun,
+                    'debit' => 0,
+                    'kredit' => $request->kembalian1,
+                    'tgl' => date('Y-m-d'),
+                    'ket' => 'Kembalian Dp ' . $kode_dp,
+                    'admin' => Auth::user()->nama,
+                ];
+                Jurnal::create($csh);
+                $totKembali = $disc > 0 ? $sub * (100 - $disc) / 100 - $voucher : $sub - $voucher;
+                if($totKembali < 0) {
+
+                } else {
+                    $pjlc = [
+                        'id_buku' => 1,
+                        'id_lokasi' => $lokasi,
+                        'id_akun' => $pjl->id_akun,
+                        'kd_gabungan' => $hasil,
+                        'no_nota' => $pjl->kd_akun . date('Y-m') . '-' . $kode_akun,
+                        'debit' => 0,
+                        'kredit' => $totKembali < 0 ? 0 : $totKembali,
+                        'tgl' => date('Y-m-d'),
+                        'ket' => 'penjualan',
+                        'admin' => Auth::user()->nama,
+                    ];
+                    Jurnal::create($pjlc);
+        
+                    $pdpll = [
+                        'id_buku' => 1,
+                        'id_lokasi' => $lokasi,
+                        'id_akun' => $pll->id_akun,
+                        'kd_gabungan' => $hasil,
+                        'no_nota' => $pll->kd_akun . date('Y-m') . '-' . $kode_akun,
+                        'debit' => 0,
+                        'kredit' => $request->round,
+                        'tgl' => date('Y-m-d'),
+                        'ket' => 'penjualan',
+                        'admin' => Auth::user()->nama,
+                    ];
+                    Jurnal::create($pdpll);
+        
+                    if($okir != 0) {
+                        $hutong = [
+                            'id_buku' => 1,
+                            'id_lokasi' => $lokasi,
+                            'id_akun' => $ho->id_akun,
+                            'kd_gabungan' => $hasil,
+                            'no_nota' => $ho->kd_akun . date('Y-m') . '-' . $kode_akun,
+                            'debit' => 0,
+                            'kredit' => $okir,
+                            'tgl' => date('Y-m-d'),
+                            'ket' => 'penjualan',
+                            'admin' => Auth::user()->nama,
+                        ];
+                        Jurnal::create($hutong);
+                    }
+                    
+        
+                    $hsc = [
+                        'id_buku' => 1,
+                        'id_lokasi' => $lokasi,
+                        'id_akun' => $hs->id_akun,
+                        'kd_gabungan' => $hasil,
+                        'no_nota' => $hs->kd_akun . date('Y-m') . '-' . $kode_akun,
+                        'debit' => 0,
+                        'kredit' => $service,
+                        'tgl' => date('Y-m-d'),
+                        'ket' => 'penjualan',
+                        'admin' => Auth::user()->nama,
+                    ];
+                    Jurnal::create($hsc);
+        
+                    $ppd = [
+                        'id_buku' => 1,
+                        'id_lokasi' => $lokasi,
+                        'id_akun' => $pd->id_akun,
+                        'kd_gabungan' => $hasil,
+                        'no_nota' => $pd->kd_akun . date('Y-m') . '-' . $kode_akun,
+                        'debit' => 0,
+                        'kredit' => $tax,
+                        'tgl' => date('Y-m-d'),
+                        'ket' => 'penjualan',
+                        'admin' => Auth::user()->nama,
+                    ];
+                    Jurnal::create($ppd);
+                }
+            }
+
+        }
+
         if($d_bca) {
             $kode_akun = Jurnal::where('id_akun', $debca->id_akun)->whereMonth('tgl', $month)->whereYear('tgl', $year)->count();
 
@@ -305,18 +412,14 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
-            if($dp > 0) {
-                $d_bca = $d_bca <= $ttl ? $d_bca + $dp : $d_bca - $kembalian + $dp;
-            } else {
-                $d_bca = $d_bca <= $ttl ? $d_bca : $d_bca - $kembalian;
-            }
+          
             $dbca = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $debca->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' => $debca->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $d_bca,
+                'debit' => $d_bca <= $ttl ? $d_bca : $d_bca - $kembalian,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -332,18 +435,14 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
-            if($dp > 0) {
-                $k_bca = $k_bca <= $ttl ? $k_bca + $dp : $k_bca - $kembalian + $dp;
-            } else {
-                $k_bca = $k_bca <= $ttl ? $k_bca : $k_bca - $kembalian;
-            }
+            
             $kbca = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' =>$krbca->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' =>$krbca->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $k_bca,
+                'debit' => $k_bca <= $ttl ? $k_bca : $k_bca - $kembalian,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -359,18 +458,14 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
-            if($dp > 0) {
-                $d_mandiri = $d_mandiri <= $ttl ? $d_mandiri + $dp : $d_mandiri - $kembalian + $dp;
-            } else {
-                $d_mandiri = $d_mandiri <= $ttl ? $d_mandiri : $d_mandiri - $kembalian;
-            }
+           
             $dman = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $dmandiri->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' => $dmandiri->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $d_mandiri,
+                'debit' => $d_mandiri <= $ttl ? $d_mandiri : $d_mandiri - $kembalian,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -386,18 +481,14 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
-            if($dp > 0) {
-                $k_mandiri = $k_mandiri <= $ttl ? $k_mandiri + $dp : $k_mandiri - $kembalian + $dp;
-            } else {
-                $k_mandiri = $k_mandiri <= $ttl ? $k_mandiri : $k_mandiri - $kembalian;
-            }
+       
             $kman = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' => $kamndiri->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' => $kamndiri->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $k_mandiri,
+                'debit' => $k_mandiri <= $ttl ? $k_mandiri : $k_mandiri - $kembalian,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -413,18 +504,14 @@ class OrderanController extends Controller
             } else {
                 $kode_akun += 1;
             }
-            if($dp > 0) {
-                $cash = $dp + $cash - $kembalian;
-            } else {
-                $cash = $cash - $kembalian;
-            }
+          
             $csh = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
                 'id_akun' =>$kas->id_akun,
                 'kd_gabungan' => $hasil,
                 'no_nota' =>$kas->kd_akun . date('Y-m') . '-' . $kode_akun,
-                'debit' => $cash,
+                'debit' => $cash - $kembalian,
                 'kredit' => 0,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
@@ -434,6 +521,8 @@ class OrderanController extends Controller
         }
         if(!$cash && $d_bca || !$cash && $k_bca || !$cash && $d_mandiri || !$cash && $k_mandiri || $cash && $d_bca && $k_bca && $d_mandiri && $k_mandiri || $cash) 
         {
+            
+            $subTotal = $disc > 0 ? $sub * (100 - $disc) / 100 - $voucher : $sub - $voucher;
             $pjlc = [
                 'id_buku' => 1,
                 'id_lokasi' => $lokasi,
@@ -441,7 +530,7 @@ class OrderanController extends Controller
                 'kd_gabungan' => $hasil,
                 'no_nota' => $pjl->kd_akun . date('Y-m') . '-' . $kode_akun,
                 'debit' => 0,
-                'kredit' => $sub,
+                'kredit' => $subTotal < 0 ? 0 : $subTotal,
                 'tgl' => date('Y-m-d'),
                 'ket' => 'penjualan',
                 'admin' => Auth::user()->nama,
@@ -514,9 +603,11 @@ class OrderanController extends Controller
     public function pembayaran2(Request $request)
     {
         $no = $request->no;
-        $order = DB::select("SELECT a.*, SUM(a.qty) as qty_produk, b.nm_menu
+        $order = DB::select("SELECT a.*, SUM(a.qty) as qty_produk, b.nm_menu, c.nm_meja
         FROM tb_order2 as a 
         left join view_menu as b on a.id_harga = b.id_harga 
+        left join tb_meja as c on c.id_meja = a.id_meja
+        
         where   a.no_order2 = '$no' 
         GROUP BY a.id_harga
         ");
@@ -546,6 +637,7 @@ class OrderanController extends Controller
     public function print_nota(Request $request)
     {
         $no = $request->no;
+        $kembalian = $request->kembalian;
         $order = DB::select("SELECT a.*, SUM(a.qty) as qty_produk, b.nm_menu, c.j_mulai , c.j_selesai, c.wait ,
         timestampdiff(MINUTE, MIN(c.j_mulai),MAX(c.j_selesai)) AS selisih, timestampdiff(MINUTE, MIN(c.j_selesai),MAX(c.wait)) AS selisih2
         FROM tb_order2 as a 
@@ -561,6 +653,7 @@ class OrderanController extends Controller
             'transaksi' => Transaksi::where('no_order', $no)->first(),
             'order' => $order,
             'no' => $no,
+            'kembalian' => $kembalian,
             'dp' => Dp::all(),
             'pesan_2' => DB::select("SELECT a.*, sum(a.qty) as sum_qty ,  b.nm_meja , c.j_mulai, c.j_selesai, c.wait,c.orang
             FROM tb_order2 as a 
@@ -618,7 +711,9 @@ class OrderanController extends Controller
     public function get_discount(Request $request)
     {
         $id_discount = $request->id_discount;
+        $now = date('Y-m-d');
         $discount = Discount::where('id_discount', $id_discount)->get();
+
         $output = [];
         foreach ($discount as $d) {
             $output['id_discount'] = $d->id_discount;
